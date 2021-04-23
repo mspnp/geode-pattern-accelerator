@@ -37,6 +37,14 @@ resource "null_resource" "apimservice" {
   }
 }
 
+resource "null_resource" "apimservicemanagedidentity" {
+  provisioner "local-exec" {
+    command = "az apim update --name ${local.service_name} -g ${var.resourceGroupName} --enable-managed-identity true"
+  }
+
+  depends_on = [null_resource.apimservice]
+}
+
 resource "azurerm_api_management_api" "inventory" {
   name                  = "Inventory"
   resource_group_name   = var.resourceGroupName
@@ -49,6 +57,20 @@ resource "azurerm_api_management_api" "inventory" {
   subscription_required = false
 
   depends_on = [null_resource.apimservice]
+}
+
+resource "azurerm_api_management_api_policy" "managedidentityapipolicy" {
+  api_name            = azurerm_api_management_api.inventory.name
+  api_management_name = local.service_name
+  resource_group_name = var.resourceGroupName
+
+  xml_content = <<XML
+<policies>
+  <inbound>
+      <authentication-managed-identity resource="${azuread_application.azuread.application_id}" />
+  </inbound>
+</policies>
+XML
 }
 
 resource "azurerm_api_management_api_operation" "getproductbyid" {
@@ -71,6 +93,16 @@ resource "azurerm_api_management_api_operation" "getproductbyid" {
     type     = "string"
   }
 }
+
+# AAD
+
+resource "azuread_application" "azuread" {
+  display_name               = local.service_name
+  reply_urls                 = ["https://${local.service_name}.azurewebsites.net/.auth/login/aad/callback"]
+  available_to_other_tenants = false
+  oauth2_allow_implicit_flow = true
+}
+
 
 # AZURE FUNCTION
 
@@ -137,6 +169,13 @@ resource "azurerm_function_app" "fxnapp" {
     type = "SystemAssigned"
   }
 
+  auth_settings {
+    enabled = true
+    active_directory {
+      client_id = azuread_application.azuread.application_id
+    }
+  }
+
   tags = {
     project            = "cnae-load-testing"
     resource-base-name = var.baseName
@@ -144,11 +183,11 @@ resource "azurerm_function_app" "fxnapp" {
 }
 
 output "api_app_name" {
-  value = azurerm_function_app.fxnapp[0].name
+  value = azurerm_function_app.fxnapp.name
 }
 
 output "api_app_possible_ip_addresses" {
-  value = azurerm_function_app.fxnapp[0].possible_outbound_ip_addresses
+  value = azurerm_function_app.fxnapp.possible_outbound_ip_addresses
 }
 
 output "api_management_gateway_url" {
@@ -166,11 +205,11 @@ output "app_insights_connection_string" {
 }
 
 output "api_tenant_id" {
-  value     = azurerm_function_app.fxnapp[0].identity[0].tenant_id
+  value     = azurerm_function_app.fxnapp.identity[0].tenant_id
   sensitive = true
 }
 
 output "api_principal_id" {
-  value     = azurerm_function_app.fxnapp[0].identity[0].principal_id
+  value     = azurerm_function_app.fxnapp.identity[0].principal_id
   sensitive = true
 }
