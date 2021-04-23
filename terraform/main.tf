@@ -59,26 +59,16 @@ variable "consistencyLevel" {
   }
 }
 
-variable "apiType" {
-  type        = string
-  description = "The type of API service deployed into each geode - can be either AzureFunction or AzureAppService"
-  default     = "AzureFunction"
-  validation {
-    condition     = var.apiType == "AzureFunction" || var.apiType == "AzureAppService"
-    error_message = "Variable apiType must be either AzureFunction or AzureAppService."
-  }
-}
-
 variable "appServicePlanTier" {
   type        = string
-  description = "Specifies the App Service plan's pricing tier if the API type is set to AzureAppService."
-  default     = "Standard"
+  description = "Specifies the Azure Function's App Service plan pricing tier."
+  default     = "Dynamic"
 }
 
 variable "appServicePlanSize" {
   type        = string
-  description = "Specifies the App Service plan's instance size tier if the API type is set to AzureAppService."
-  default     = "S1"
+  description = "Specifies the Azure Function's App Service plan instance size tier."
+  default     = "Y1"
 }
 
 locals {
@@ -400,7 +390,6 @@ module "geode" {
   baseName           = var.baseName
   location           = local.allLocations[count.index]
   resourceGroupName  = azurerm_resource_group.rg.name
-  apiType            = var.apiType
   appServicePlanTier = var.appServicePlanTier
   appServicePlanSize = var.appServicePlanSize
 }
@@ -408,30 +397,20 @@ module "geode" {
 # AZURE FUNCTION APP SETTINGS
 
 module "function_app_settings" {
-  count                                  = var.apiType == "AzureFunction" ? length(module.geode) : 0
+  count                                  = length(module.geode)
   source                                 = "./internal_modules/function_app_settings"
   instrumentationKey                     = module.geode[count.index].app_insights_instrumentation_key
   functionAppName                        = module.geode[count.index].api_app_name
   cosmosConnectionStringKeyVaultSecretId = azurerm_key_vault_secret.cosmosconnectionstring.id
 }
 
-# APP SERVICE APP SETTINGS
-
-module "app_service_app_settings" {
-  count                       = var.apiType == "AzureAppService" ? length(module.geode) : 0
-  source                      = "./internal_modules/app_service_app_settings"
-  instrumentationKey          = module.geode[count.index].app_insights_instrumentation_key
-  webAppName                  = module.geode[count.index].api_app_name
-  appInsightsConnectionString = module.geode[count.index].app_insights_connection_string
-}
-
 output "cosmos_endpoint" {
-  value = azurerm_cosmosdb_account.cosmosaccount.endpoint
+  value     = azurerm_cosmosdb_account.cosmosaccount.endpoint
   sensitive = true
 }
 
 output "cosmos_primary_key" {
-  value = azurerm_cosmosdb_account.cosmosaccount.primary_key
+  value     = azurerm_cosmosdb_account.cosmosaccount.primary_key
   sensitive = true
 }
 

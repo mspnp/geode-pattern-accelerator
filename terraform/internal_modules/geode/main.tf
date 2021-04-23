@@ -13,26 +13,16 @@ variable "resourceGroupName" {
   description = "The name of the Resource Group in which to deploy API resources"
 }
 
-variable "apiType" {
-  type        = string
-  description = "The type of API service deployed into each geode - can be either AzureFunction or AzureAppService"
-  default     = "AzureFunction"
-  validation {
-    condition     = var.apiType == "AzureFunction" || var.apiType == "AzureAppService"
-    error_message = "Variable apiType must be either AzureFunction or AzureAppService."
-  }
-}
-
 variable "appServicePlanTier" {
   type        = string
-  description = "Specifies the App Service plan's pricing tier."
-  default     = "Standard"
+  description = "Specifies the Azure Function's App Service plan pricing tier."
+  default     = "Dynamic"
 }
 
 variable "appServicePlanSize" {
   type        = string
-  description = "Specifies the App Service plan's instance size tier."
-  default     = "S1"
+  description = "Specifies the Azure Function's App Service plan instance size tier."
+  default     = "Y1"
 }
 
 locals {
@@ -55,7 +45,7 @@ resource "azurerm_api_management_api" "inventory" {
   display_name          = "Inventory"
   path                  = "inventory"
   protocols             = ["https"]
-  service_url           = var.apiType == "AzureFunction" ? "https://${azurerm_function_app.fxnapp[0].default_hostname}" : "https://${azurerm_app_service.appserviceapp[0].default_site_hostname}"
+  service_url           = "https://${azurerm_function_app.fxnapp[0].default_hostname}"
   subscription_required = false
 
   depends_on = [null_resource.apimservice]
@@ -82,123 +72,9 @@ resource "azurerm_api_management_api_operation" "getproductbyid" {
   }
 }
 
-resource "azurerm_api_management_api_operation" "getallproducts" {
-  operation_id        = "GetAllProducts"
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-  display_name        = "GetAllProducts"
-  method              = "GET"
-  url_template        = "/api/products"
-  description         = "Retrieves all Product Ids"
+# AZURE FUNCTION
 
-  response {
-    status_code = 200
-  }
-}
-
-resource "azurerm_api_management_api_operation" "updateinventory" {
-  operation_id        = "UpdateInventory"
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-  display_name        = "UpdateInventory"
-  method              = "POST"
-  url_template        = "/api/product/{id}/inventory"
-  description         = "Update units available for a Product"
-
-  response {
-    status_code = 200
-  }
-
-  template_parameter {
-    name     = "id"
-    required = true
-    type     = "string"
-  }
-}
-
-resource "azurerm_api_management_api_operation" "getwarehousebyid" {
-  operation_id        = "GetWarehouseById"
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-  display_name        = "GetWarehouseById"
-  method              = "GET"
-  url_template        = "/api/warehouse/{id}"
-  description         = "Retrieves Warehouse by Id"
-
-  response {
-    status_code = 200
-  }
-
-  template_parameter {
-    name     = "id"
-    required = true
-    type     = "string"
-  }
-}
-
-resource "azurerm_api_management_api_operation" "getorderbyid" {
-  operation_id        = "GetOrderById"
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-  display_name        = "GetOrderById"
-  method              = "GET"
-  url_template        = "/api/order/{id}"
-  description         = "Retrieves Order by Id"
-
-  response {
-    status_code = 200
-  }
-
-  template_parameter {
-    name     = "id"
-    required = true
-    type     = "string"
-  }
-}
-
-resource "azurerm_api_management_api_operation" "createorder" {
-  operation_id        = "CreateOrder"
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-  display_name        = "CreateOrder"
-  method              = "POST"
-  url_template        = "/api/order"
-  description         = "Creates Order"
-
-  response {
-    status_code = 200
-  }
-}
-
-resource "azurerm_api_management_api_operation" "cancelorder" {
-  operation_id        = "CancelOrder"
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-  display_name        = "CancelOrder"
-  method              = "POST"
-  url_template        = "/api/order/{id}/cancel"
-  description         = "Cancels Order"
-
-  response {
-    status_code = 200
-  }
-
-  template_parameter {
-    name     = "id"
-    required = true
-    type     = "string"
-  }
-}
-
-# AZURE FUNCTION/AZURE APP SERVICE
-
-resource "azurerm_application_insights" "apiappinsights" {
+resource "azurerm_application_insights" "fxnappinsights" {
   name                = local.service_name
   location            = var.location
   resource_group_name = var.resourceGroupName
@@ -211,7 +87,6 @@ resource "azurerm_application_insights" "apiappinsights" {
 }
 
 resource "azurerm_storage_account" "fxnstorage" {
-  count                    = var.apiType == "AzureFunction" ? 1 : 0
   name                     = local.service_name
   resource_group_name      = var.resourceGroupName
   location                 = var.location
@@ -226,7 +101,6 @@ resource "azurerm_storage_account" "fxnstorage" {
 }
 
 resource "azurerm_app_service_plan" "fxnase" {
-  count               = var.apiType == "AzureFunction" ? 1 : 0
   name                = local.service_name
   location            = var.location
   resource_group_name = var.resourceGroupName
@@ -244,7 +118,6 @@ resource "azurerm_app_service_plan" "fxnase" {
 }
 
 resource "azurerm_function_app" "fxnapp" {
-  count                      = var.apiType == "AzureFunction" ? 1 : 0
   name                       = local.service_name
   location                   = var.location
   resource_group_name        = var.resourceGroupName
@@ -270,53 +143,12 @@ resource "azurerm_function_app" "fxnapp" {
   }
 }
 
-resource "azurerm_app_service_plan" "appservicease" {
-  count               = var.apiType == "AzureAppService" ? 1 : 0
-  name                = local.service_name
-  location            = var.location
-  resource_group_name = var.resourceGroupName
-  kind                = "windows"
-
-  sku {
-    tier = var.appServicePlanTier
-    size = var.appServicePlanSize
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
-  }
-}
-
-resource "azurerm_app_service" "appserviceapp" {
-  count               = var.apiType == "AzureAppService" ? 1 : 0
-  name                = local.service_name
-  location            = var.location
-  resource_group_name = var.resourceGroupName
-  app_service_plan_id = azurerm_app_service_plan.appservicease[0].id
-
-  lifecycle {
-    ignore_changes = [
-      app_settings
-    ]
-  }
-
-  identity {
-    type = "SystemAssigned"
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
-  }
-}
-
 output "api_app_name" {
-  value = var.apiType == "AzureFunction" ? azurerm_function_app.fxnapp[0].name : azurerm_app_service.appserviceapp[0].name
+  value = azurerm_function_app.fxnapp[0].name
 }
 
 output "api_app_possible_ip_addresses" {
-  value = var.apiType == "AzureFunction" ? azurerm_function_app.fxnapp[0].possible_outbound_ip_addresses : azurerm_app_service.appserviceapp[0].possible_outbound_ip_addresses
+  value = azurerm_function_app.fxnapp[0].possible_outbound_ip_addresses
 }
 
 output "api_management_gateway_url" {
@@ -334,11 +166,11 @@ output "app_insights_connection_string" {
 }
 
 output "api_tenant_id" {
-  value     = var.apiType == "AzureFunction" ? azurerm_function_app.fxnapp[0].identity[0].tenant_id : azurerm_app_service.appserviceapp[0].identity[0].tenant_id
+  value     = azurerm_function_app.fxnapp[0].identity[0].tenant_id
   sensitive = true
 }
 
 output "api_principal_id" {
-  value     = var.apiType == "AzureFunction" ? azurerm_function_app.fxnapp[0].identity[0].principal_id : azurerm_app_service.appserviceapp[0].identity[0].principal_id
+  value     = azurerm_function_app.fxnapp[0].identity[0].principal_id
   sensitive = true
 }
