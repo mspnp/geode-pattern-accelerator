@@ -53,7 +53,7 @@ resource "azurerm_api_management_api" "inventory" {
   display_name          = "Inventory"
   path                  = "inventory"
   protocols             = ["https"]
-  service_url           = "https://${azurerm_function_app.fxnapp[0].default_hostname}"
+  service_url           = "https://${azurerm_function_app.fxnapp.default_hostname}"
   subscription_required = false
 
   depends_on = [null_resource.apimservice]
@@ -153,9 +153,9 @@ resource "azurerm_function_app" "fxnapp" {
   name                       = local.service_name
   location                   = var.location
   resource_group_name        = var.resourceGroupName
-  app_service_plan_id        = azurerm_app_service_plan.fxnase[0].id
-  storage_account_name       = azurerm_storage_account.fxnstorage[0].name
-  storage_account_access_key = azurerm_storage_account.fxnstorage[0].primary_access_key
+  app_service_plan_id        = azurerm_app_service_plan.fxnase.id
+  storage_account_name       = azurerm_storage_account.fxnstorage.name
+  storage_account_access_key = azurerm_storage_account.fxnstorage.primary_access_key
   version                    = "~3"
   enable_builtin_logging     = false
 
@@ -195,12 +195,12 @@ output "api_management_gateway_url" {
 }
 
 output "app_insights_instrumentation_key" {
-  value     = azurerm_application_insights.apiappinsights.instrumentation_key
+  value     = azurerm_application_insights.fxnappinsights.instrumentation_key
   sensitive = true
 }
 
 output "app_insights_connection_string" {
-  value     = azurerm_application_insights.apiappinsights.connection_string
+  value     = azurerm_application_insights.fxnappinsights.connection_string
   sensitive = true
 }
 

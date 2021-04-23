@@ -240,29 +240,7 @@ resource "azurerm_cosmosdb_sql_container" "products" {
   }
 }
 
-resource "azurerm_cosmosdb_sql_container" "warehouses" {
-  name                = "Warehouses"
-  resource_group_name = azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.cosmosaccount.name
-  database_name       = azurerm_cosmosdb_sql_database.inventory.name
-  partition_key_path  = "/id"
-  autoscale_settings {
-    max_throughput = var.containerMaxThroughput
-  }
-}
-
-resource "azurerm_cosmosdb_sql_container" "orders" {
-  name                = "Orders"
-  resource_group_name = azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.cosmosaccount.name
-  database_name       = azurerm_cosmosdb_sql_database.inventory.name
-  partition_key_path  = "/id"
-  autoscale_settings {
-    max_throughput = var.containerMaxThroughput
-  }
-}
-
-resource "azurerm_monitor_diagnostic_setting" "diagnosticsetting" {
+resource "azurerm_monitor_diagnostic_setting" "cosmosdiagnosticsetting" {
   name                       = "cosmosdiagnosticsetting"
   target_resource_id         = azurerm_cosmosdb_account.cosmosaccount.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.loganalytics.id
