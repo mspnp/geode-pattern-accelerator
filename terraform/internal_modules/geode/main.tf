@@ -33,7 +33,7 @@ locals {
 
 resource "null_resource" "apimservice" {
   provisioner "local-exec" {
-    command = "az apim create --name ${local.service_name} -g ${var.resourceGroupName} -l ${var.location} --sku-name Consumption --publisher-email publisher@example.com --publisher-name Publisher --tags project=cnae-load-testing resource-base-name=${var.baseName}"
+    command = "az apim create --name ${local.service_name} -g ${var.resourceGroupName} -l ${var.location} --sku-name Consumption --publisher-email publisher@example.com --publisher-name Publisher"
   }
 }
 
@@ -111,11 +111,6 @@ resource "azurerm_application_insights" "fxnappinsights" {
   location            = var.location
   resource_group_name = var.resourceGroupName
   application_type    = "web"
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
-  }
 }
 
 resource "azurerm_storage_account" "fxnstorage" {
@@ -125,11 +120,6 @@ resource "azurerm_storage_account" "fxnstorage" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
-  }
 }
 
 resource "azurerm_app_service_plan" "fxnase" {
@@ -141,11 +131,6 @@ resource "azurerm_app_service_plan" "fxnase" {
   sku {
     tier = var.appServicePlanTier
     size = var.appServicePlanSize
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
   }
 }
 
@@ -174,11 +159,6 @@ resource "azurerm_function_app" "fxnapp" {
     active_directory {
       client_id = azuread_application.azuread.application_id
     }
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
   }
 }
 

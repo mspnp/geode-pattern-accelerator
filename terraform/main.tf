@@ -84,11 +84,6 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "rg" {
   name     = "${var.baseName}-rg"
   location = var.primaryLocation
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
-  }
 }
 
 # FRONT DOOR
@@ -139,11 +134,6 @@ resource "azurerm_frontdoor" "frontdoor" {
       forwarding_protocol = "MatchRequest"
       backend_pool_name   = "geodeAPIBackendPool"
     }
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
   }
 }
 
@@ -212,11 +202,6 @@ resource "azurerm_cosmosdb_account" "cosmosaccount" {
       failover_priority = index(var.additionalLocations, geo_location.value) + 1
       zone_redundant    = var.availabilityZones
     }
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
   }
 }
 
@@ -346,11 +331,6 @@ resource "azurerm_key_vault" "keyvault" {
         "get",
       ]
     }
-  }
-
-  tags = {
-    project            = "cnae-load-testing"
-    resource-base-name = var.baseName
   }
 }
 
