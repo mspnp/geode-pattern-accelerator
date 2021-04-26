@@ -94,6 +94,21 @@ resource "azurerm_api_management_api_operation" "getproductbyid" {
   }
 }
 
+resource "azurerm_api_management_api_operation" "getproducts" {
+  operation_id        = "GetProducts"
+  api_name            = azurerm_api_management_api.inventory.name
+  api_management_name = local.service_name
+  resource_group_name = var.resourceGroupName
+  display_name        = "GetProducts"
+  method              = "GET"
+  url_template        = "/api/products"
+  description         = "Retrieves all Products"
+
+  response {
+    status_code = 200
+  }
+}
+
 # AAD
 
 resource "azuread_application" "azuread" {
