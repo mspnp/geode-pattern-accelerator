@@ -18,14 +18,14 @@ The Terraform script also create a Cosmos DB instance with a database and contai
 
 Monitoring resources are deployed to each of the resources in the larger API architecture, where possible. A single Log Analytics workspace is deployed to the resource group and is configured to capture logs from both the Front Door and Cosmos DB. Each Azure Function App is deployed with a dedicated Application Insights that is used to collect and query its log, performance, and error data. Application Insights significantly reduces throughput when applied to an API Management instance, and the Consumption tier does not currently support Log Analytics, so monitoring has been omitted for API Management.
 
-At a glance, the top level resources deployed to the resource group _once_ are as follows:
+The top level resources deployed to the resource group _once_ are as follows:
 
 - Front Door
 - Cosmos DB
 - Key Vault
 - Log Analytics Workspace
 
-At a glance, the top level resources deployed _to each geode_ are as follows:
+The top level resources deployed _to each geode_ are as follows:
 
 - API Management
 - App Service Plan
@@ -34,9 +34,27 @@ At a glance, the top level resources deployed _to each geode_ are as follows:
 - Storage Account
 - Azure AD
 
+## Use With Example Inventory API
+
+The src folder contains a basic API that serves as an example and starting place for developers to get started with the accelerator. The Inventory API is designed to work with a Cosmos DB instance with an Inventory database and Products container. The API contains two endpoints, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container. The endpoints themselves utilize Cosmos DB input bindings for Azure Functions and simply return the retrieved result, without any additional C# logic. The endpoints are accessible through `https://<BASENAME><REGION>.azurewebsites.net/api/products` and `https://<BASENAME><REGION>.azurewebsites.net/api/product/{id}`.
+
+Navigate to the terraform directory ([/terraform](./terraform)) and initialize the project:
+
+```dotnetcli
+terraform init
+```
+
+Plan, and then apply the execution plan, supplying the appropriate values for your needs for each parameter:
+
+```dotnetcli
+terraform apply -var 'baseName=xxxxx' -var 'primaryLocation=xxxxx' -var 'additionalLocations=[\"xxxxx\"]' -var 'appServicePlanTier=xxxxx' -var 'appServicePlanSize=xxxxx' -var 'databaseMaxThroughput=xxxxx' -var 'containerMaxThroughput=xxxxx' -var 'consistencyLevel=xxxxx' -var 'availabilityZones=xxxxx' -var 'multiRegionWrite=xxxxx'
+```
+
+Finally, deploy the Inventory API Azure Function code to each of the Function apps in the newly created resource group and test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/inventory/api/products` and `https://<BASENAME>frontdoor.azurefd.net/inventory/api/product/{id}`).
+
 ## Use With Your Own API
 
-The accelerator contains a .NET Azure Function based API ([/src/inventory-api](./src/inventory-api)) that deals with storage and retrieval of Product entities in Cosmos DB. The project contains two Functions - GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products table in an Inventory database in a Cosmos DB.
+The accelerator contains a .NET Azure Function based API ([/src/inventory-api](./src/inventory-api)) that deals with storage and retrieval of Product entities in Cosmos DB. The project contains two Functions, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container in an Inventory database in a Cosmos DB.
 
 The API can be deleted from the repository entirely and a new Azure Function project should be moved into the project. In order for the accelerator to work with your API, the terraform code will need to be updated in a few key places.
 
