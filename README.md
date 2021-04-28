@@ -1,29 +1,29 @@
 # Geode Pattern Accelerator
 
-The accelerator is designed to help developers with Azure Function based APIs that utilize Cosmos DB to implement the geode pattern by deploying their API to geodes in distributed Azure regions.
+The accelerator is designed to help developers with Azure Functions based APIs that utilize Cosmos DB as a data store to implement the geode pattern by deploying their API to geodes in distributed Azure regions.
 
 ![Geode Pattern](./images/GeodeWorldMap.png)
 
 The repository contains Terraform code that deploys geodes to a configurable set of Azure regions, each containing an Azure Function App and API Management instance that fronts it. It also deploys a Cosmos DB account with read/write regions in each of the geode locations and an Azure Front Door that load balances between the regional API deployments. Each piece of the larger architecture is deployed with dedicated monitoring resources and security measures.
 
-The accelerator can be used with any Azure Function based API, but also supplies a basic .NET Inventory API as a starting place for new projects.
+The accelerator can be used with any Azure Functions based API, but also supplies a basic .NET Inventory API as a starting place for new projects.
 
 ## Architecture Details
 
-Applying the files in the terraform directory creates a series of resources in a new resource group. In each of the locations supplied via Terraform parameter, the script creates a Consumption tier API Management instance with an Azure Function backend. The API Management instance has an API and Operations that exactly match the endpoints exposed by the Functions API. An Azure Front Door instance is deployed globally and is configured with backend pools and routing rules that allow it to distribute traffic between the API Management instances. The Front Door serves as the single point of entry for the API.
+Applying the files in the terraform directory creates a series of resources in a new resource group. In each of the locations supplied via Terraform parameter, the code creates a Consumption tier API Management instance with an Azure Functions backend. The API Management instance has an API and Operations that exactly match the endpoints exposed by the Azure Function App. An Azure Front Door instance is deployed globally and is configured with backend pools and routing rules that allow it to distribute traffic between the API Management instances. The Front Door serves as the single point of entry for the API.
 
-Each geode also receives a dedicated Azure AD application that is used to secure the geode's Azure Function. The API Management instance is deployed with a Managed Identity contains an `authentication-managed-identity` policy that allows it to call the Azure Function. Traffic to the Azure Function is thus restricted to the API Management instance in its geode. Relevant secrets are stored in a single Key Vault instance which supports the entire resource group.
+Each geode also receives a dedicated Azure AD application that is used to secure the geode's Function App. The API Management instance is deployed with Managed Identity and contains an `authentication-managed-identity` policy that allows it to call the Azure Functions. Traffic to the Azure Functions is thus restricted to the API Management instance in its geode. Relevant secrets are stored in a single Key Vault instance which supports the entire resource group.
 
-The Terraform script also create a Cosmos DB instance with a database and containers that are necessary for the Azure Function. Each of the locations supplied via Terraform parameter are added as read regions. Optionally (via Terraform parameter as well), the Cosmos DB can be deployed with multi-region write enabled and each of the same read regions are deployed with write capabilities. Other important properties on the Cosmos DB, like maximum throughput on the database and containers, consistency level, etc. can also be easily supplied via Terraform parameter. Traffic is restricted so that the only entities able to run Cosmos DB queries are the set of Azure Functions in the various geodes.
+The Terraform code also creates a Cosmos DB instance with a database and containers that are necessary for the Azure Functions. Each of the locations supplied via Terraform parameter are added as read regions. Optionally, the files can be applied with multi-region write enabled, deploying each of the same read regions with write capabilities. Other important properties on the Cosmos DB like maximum throughput on the database and containers, consistency level, etc. can also be easily supplied via Terraform parameter. Traffic is restricted so that the only entities able to run Cosmos DB queries are the set of Azure Functions in the various geodes.
 
-Monitoring resources are deployed to each of the resources in the larger API architecture, where possible. A single Log Analytics workspace is deployed to the resource group and is configured to capture logs from both the Front Door and Cosmos DB. Each Azure Function App is deployed with a dedicated Application Insights that is used to collect and query its log, performance, and error data. Application Insights significantly reduces throughput when applied to an API Management instance, and the Consumption tier does not currently support Log Analytics, so monitoring has been omitted for API Management.
+Monitoring resources are deployed to each of the resources in the larger API architecture, where possible. A single Log Analytics workspace is deployed to the resource group and is configured to capture logs from both the Front Door and Cosmos DB. Each Azure Function App is deployed with a dedicated Application Insights that is used to collect and query its log, performance, and error data. Application Insights significantly reduces throughput when applied to an API Management instance and the Consumption tier does not currently support Log Analytics, so monitoring has been omitted for API Management.
 
 The top level resources deployed to the resource group _once_ are as follows:
 
 - Front Door
 - Cosmos DB
 - Key Vault
-- Log Analytics Workspace
+- Log Analytics
 
 The top level resources deployed _to each geode_ are as follows:
 
@@ -36,9 +36,9 @@ The top level resources deployed _to each geode_ are as follows:
 
 ## Use With Example Inventory API
 
-The src folder contains a basic API that serves as an example and starting place for developers to get started with the accelerator. The Inventory API is designed to work with a Cosmos DB instance with an Inventory database and Products container. The API contains two endpoints, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container. The endpoints themselves utilize Cosmos DB input bindings for Azure Functions and simply return the retrieved result, without any additional C# logic. The endpoints are accessible through `https://<BASENAME><REGION>.azurewebsites.net/api/products` and `https://<BASENAME><REGION>.azurewebsites.net/api/product/{id}`.
+The [/src](./src) directory contains a basic API that serves as an example and starting place for developers to get started with the accelerator. The Inventory API is designed to work with a Cosmos DB instance with an Inventory database and Products container. The API contains two endpoints, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container. The endpoints themselves utilize Cosmos DB input bindings for Azure Functions and simply return the retrieved result, without any additional C# logic. The endpoints are accessible through `https://<BASENAME><REGION>.azurewebsites.net/api/products` and `https://<BASENAME><REGION>.azurewebsites.net/api/product/{id}`.
 
-Navigate to the terraform directory ([/terraform](./terraform)) and initialize the project:
+Navigate to the [/terraform](./terraform) directory and initialize the project:
 
 ```dotnetcli
 terraform init
@@ -50,15 +50,15 @@ Plan, and then apply the execution plan, supplying the appropriate values for yo
 terraform apply -var 'baseName=xxxxx' -var 'primaryLocation=xxxxx' -var 'additionalLocations=[\"xxxxx\"]' -var 'appServicePlanTier=xxxxx' -var 'appServicePlanSize=xxxxx' -var 'databaseMaxThroughput=xxxxx' -var 'containerMaxThroughput=xxxxx' -var 'consistencyLevel=xxxxx' -var 'availabilityZones=xxxxx' -var 'multiRegionWrite=xxxxx'
 ```
 
-Finally, deploy the Inventory API Azure Function code to each of the Function apps in the newly created resource group and test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/inventory/api/products` and `https://<BASENAME>frontdoor.azurefd.net/inventory/api/product/{id}`).
+Finally, deploy the Inventory API code to each of the Function Apps in the newly created resource group and test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/inventory/api/products` and `https://<BASENAME>frontdoor.azurefd.net/inventory/api/product/{id}`).
 
 ## Use With Your Own API
 
-The accelerator contains a .NET Azure Function based API ([/src/inventory-api](./src/inventory-api)) that deals with storage and retrieval of Product entities in Cosmos DB. The project contains two Functions, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container in an Inventory database in a Cosmos DB.
+The accelerator contains a .NET Azure Functions based Inventory API ([/src/inventory-api](./src/inventory-api)) that deals with storage and retrieval of Product entities in Cosmos DB. The project contains two Functions, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container in an Inventory database in a Cosmos DB.
 
-The API can be deleted from the repository entirely and a new Azure Function project should be moved into the project. In order for the accelerator to work with your API, the terraform code will need to be updated in a few key places.
+Assuming you have an Azure Functions based API that uses Cosmos DB as a data store, the Inventory API can be deleted from the repository entirely and a new Azure Functions project can be moved into the repo. In order for the accelerator to work with your API, the Terraform code will need to be updated in a few key places.
 
-The Cosmos DB database and container resources are declared on line 223 of [main.tf](./terraform/main.tf), . Update the "inventory" database and "products" container to have the appropriate names and partition keys:
+The Cosmos DB database and container resources are declared on line 208 of [main.tf](./terraform/main.tf), . Update the "inventory" database and "products" container with the appropriate names and partition keys:
 
 ```terraform
 resource "azurerm_cosmosdb_sql_database" "inventory" {
@@ -84,7 +84,7 @@ resource "azurerm_cosmosdb_sql_container" "products" {
 
 The API Management API(s) and Operations will need to be updated to match the endpoints in your API.
 
-On line 48, the API is named 'Inventory' with path, protocols, etc. specified:
+On line 48 of [main.tf](./terraform/internal_modules/geode/main.tf) in the geode module, the "inventory" API is declared with path, protocols, etc. specified:
 
 ```terraform
 resource "azurerm_api_management_api" "inventory" {
@@ -166,11 +166,11 @@ Finally, deploy your Azure Function code to each of the Function apps in the new
 
 | Parameter              | DataType | Required | Description                                                                                                                            |
 | ---------------------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| baseName               | string   | true     | The base name for created resources, used for tagging as a group                                                                       |
-| primaryLocation        | string   | true     | The Azure region in which to deploy the Resource Group as well as Cosmos DB, API, and Key Vault instances                              |
-| additionalLocations    | string   | true     | The additional Azure regions in which to deploy API resources                                                                          |
-| appServicePlanTier     | string   | false    | Specifies the Azure Function's App Service plan pricing tier.                                                                          |
-| appServicePlanSize     | string   | false    | Specifies the Azure Function's App Service plan instance size tier.                                                                    |
+| baseName               | string   | true     | The base name for created resources, used for tagging as a group.                                                                      |
+| primaryLocation        | string   | true     | The Azure region in which to deploy the Resource Group as well as Cosmos DB, API, and Key Vault resources.                             |
+| additionalLocations    | string   | true     | The additional Azure regions in which to deploy API resources.                                                                         |
+| appServicePlanTier     | string   | false    | Specifies the Azure Functions App Service plan pricing tier.                                                                           |
+| appServicePlanSize     | string   | false    | Specifies the Azure Functions App Service plan instance size tier.                                                                     |
 | databaseMaxThroughput  | integer  | false    | The maximum throughput of the SQL database (RU/s). Must be between 100,000 and 1,000,000. Must be set in increments of 1,000.          |
 | containerMaxThroughput | integer  | false    | The maximum throughput of the SQL container (RU/s). Must be between 10,000 and 100,000. Must be set in increments of 1,000.            |
 | consistencyLevel       | string   | false    | The Consistency Level to use for the CosmosDB Account - can be either BoundedStaleness, Eventual, Session, Strong or ConsistentPrefix. |
@@ -179,5 +179,9 @@ Finally, deploy your Azure Function code to each of the Function apps in the new
 
 ## Issues and Solutions
 
-- function settings are outputted as file
+- function settings are outputted as file, figure out
+- function settings and apim security are limited due to circular dependencies in terraform
+- need directions on how to deploy function code/app settings after terraform files have been applied
+- 'Use With Your API' talks about function app settings file
+- front door waf section needs to be added to use with your api
 - give script that loops through apps and deploys function settings

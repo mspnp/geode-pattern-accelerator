@@ -15,13 +15,13 @@ variable "resourceGroupName" {
 
 variable "appServicePlanTier" {
   type        = string
-  description = "Specifies the Azure Function's App Service plan pricing tier."
+  description = "Specifies the Azure Functions App Service plan pricing tier."
   default     = "Dynamic"
 }
 
 variable "appServicePlanSize" {
   type        = string
-  description = "Specifies the Azure Function's App Service plan instance size tier."
+  description = "Specifies the Azure Functions App Service plan instance size tier."
   default     = "Y1"
 }
 

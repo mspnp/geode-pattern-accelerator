@@ -9,7 +9,7 @@ variable "baseName" {
 
 variable "primaryLocation" {
   type        = string
-  description = "The Azure region in which to deploy the Resource Group as well as Cosmos DB, API, and Key Vault instances."
+  description = "The Azure region in which to deploy the Resource Group as well as Cosmos DB, API, and Key Vault resources."
 }
 
 variable "additionalLocations" {
