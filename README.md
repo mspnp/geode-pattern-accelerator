@@ -18,6 +18,22 @@ The Terraform script also create a Cosmos DB instance with a database and contai
 
 Monitoring resources are deployed to each of the resources in the larger API architecture, where possible. A single Log Analytics workspace is deployed to the resource group and is configured to capture logs from both the Front Door and Cosmos DB. Each Azure Function App is deployed with a dedicated Application Insights that is used to collect and query its log, performance, and error data. Application Insights significantly reduces throughput when applied to an API Management instance, and the Consumption tier does not currently support Log Analytics, so monitoring has been omitted for API Management.
 
+At a glance, the top level resources deployed to the resource group _once_ are as follows:
+
+- Front Door
+- Cosmos DB
+- Key Vault
+- Log Analytics Workspace
+
+At a glance, the top level resources deployed _to each geode_ are as follows:
+
+- API Management
+- App Service Plan
+- Azure Functions
+- Application Insights
+- Storage Account
+- Azure AD
+
 ## Use With Your Own API
 
 The accelerator contains a .NET Azure Function based API ([/src/inventory-api](./src/inventory-api)) that deals with storage and retrieval of Product entities in Cosmos DB. The project contains two Functions - GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products table in an Inventory database in a Cosmos DB.
