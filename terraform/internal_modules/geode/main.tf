@@ -1,16 +1,16 @@
 variable "baseName" {
   type        = string
-  description = "The root of base name for created resources, used for tagging as a group"
+  description = "The base name for created resources, used for tagging as a group."
 }
 
 variable "location" {
   type        = string
-  description = "The Azure region in which to deploy API resources"
+  description = "The Azure region in which to deploy API resources."
 }
 
 variable "resourceGroupName" {
   type        = string
-  description = "The name of the Resource Group in which to deploy API resources"
+  description = "The name of the Resource Group in which to deploy API resources."
 }
 
 variable "appServicePlanTier" {

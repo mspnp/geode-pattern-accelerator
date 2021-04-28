@@ -4,17 +4,17 @@ provider "azurerm" {
 
 variable "baseName" {
   type        = string
-  description = "The root of base name for created resources, used for tagging as a group"
+  description = "The base name for created resources, used for tagging as a group."
 }
 
 variable "primaryLocation" {
   type        = string
-  description = "The Azure region in which to deploy the Resource Group as well as Cosmos DB, API, and Key Vault instances"
+  description = "The Azure region in which to deploy the Resource Group as well as Cosmos DB, API, and Key Vault instances."
 }
 
 variable "additionalLocations" {
   type        = list(string)
-  description = "The additional Azure regions in which to deploy API resources"
+  description = "The additional Azure regions in which to deploy API resources."
 }
 
 variable "databaseMaxThroughput" {
@@ -39,7 +39,7 @@ variable "containerMaxThroughput" {
 
 variable "availabilityZones" {
   type        = bool
-  description = "Should zone redundancy be enabled for this region?"
+  description = "Should zone redundancy be enabled for the Cosmos DB regions?"
   default     = false
 }
 
@@ -51,7 +51,7 @@ variable "multiRegionWrite" {
 
 variable "consistencyLevel" {
   type        = string
-  description = "The Consistency Level to use for this CosmosDB Account - can be either BoundedStaleness, Eventual, Session, Strong or ConsistentPrefix."
+  description = "The Consistency Level to use for the CosmosDB Account - can be either BoundedStaleness, Eventual, Session, Strong or ConsistentPrefix."
   default     = "Session"
   validation {
     condition     = var.consistencyLevel == "Session" || var.consistencyLevel == "BoundedStaleness" || var.consistencyLevel == "Eventual" || var.consistencyLevel == "Strong" || var.consistencyLevel == "ConsistentPrefix"
