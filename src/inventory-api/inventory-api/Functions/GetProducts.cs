@@ -13,7 +13,7 @@ namespace Inventory.Functions
     {
         [FunctionName("GetProducts")]
         public static IActionResult Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "products")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "products")] HttpRequest req,
             [CosmosDB(
                 databaseName: "Inventory",
                 collectionName: "Products",
