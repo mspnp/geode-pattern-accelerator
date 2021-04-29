@@ -1,0 +1,7 @@
+let startTime = todatetime(<QUERY_START_TIME>);
+let endTime =  todatetime(<QUERY_END_TIME>);
+cluster("https://ade.loganalytics.io/subscriptions/<SUBSCRIPTION_ID>/resourcegroups/<BASE_NAME>-rg/providers/microsoft.operationalinsights/workspaces/<BASE_NAME>loganalytics").database("<BASE_NAME>loganalytics").AzureDiagnostics
+| where TimeGenerated between (startTime .. endTime)
+| where ResourceProvider == "MICROSOFT.DOCUMENTDB"
+| where Category == "DataPlaneRequests" and toint(statusCode_s) >= 200 and toint(statusCode_s) < 300
+| summarize successfulRequests = count()

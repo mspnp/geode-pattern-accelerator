@@ -1,0 +1,7 @@
+let startTime = todatetime(<QUERY_START_TIME>);
+let endTime =  todatetime(<QUERY_END_TIME>);
+cluster("https://ade.loganalytics.io/subscriptions/<SUBSCRIPTION_ID>/resourcegroups/<BASE_NAME>-rg/providers/microsoft.operationalinsights/workspaces/<BASE_NAME>loganalytics").database("<BASE_NAME>loganalytics").AzureDiagnostics
+| where TimeGenerated between (startTime .. endTime)
+| where ResourceProvider == "MICROSOFT.DOCUMENTDB"
+| where OperationName == "Read"
+| summarize AvgDurationMs = round(avg(todouble(duration_s)), 4), MinDurationMs = round(min(todouble(duration_s)), 4), 25thPercentileDurationMs = round(todecimal(percentile(todouble(duration_s), 25)), 4), 50thPercentileDurationMs = round(todecimal(percentile(todouble(duration_s), 50)), 4), 75thPercentileDurationMs = round(todecimal(percentile(todouble(duration_s), 75)), 4), 90thPercentileDurationMs = round(todecimal(percentile(todouble(duration_s), 90)), 4), 99thPercentileDurationMs = round(todecimal(percentile(todouble(duration_s), 99)), 4), MaxDurationMs = round(max(todouble(duration_s)), 4)

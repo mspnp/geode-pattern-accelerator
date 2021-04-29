@@ -1,0 +1,6 @@
+
+let startTime = todatetime(<QUERY_START_TIME>);
+let endTime =  todatetime(<QUERY_END_TIME>);
+cluster("https://ade.applicationinsights.io/subscriptions/<SUBSCRIPTION_ID>/resourcegroups/<BASE_NAME>-rg/providers/microsoft.insights/components/<BASE_NAME><REGION>").database("<BASE_NAME><REGION>").requests
+| where timestamp between (startTime .. endTime)
+| summarize count() by resultCode

@@ -1,0 +1,11 @@
+let startTime = todatetime(<QUERY_START_TIME>);
+let endTime =  todatetime(<QUERY_END_TIME>);
+let countries = externaldata(Network:string, geoname_id:string, continent_code:string, continent_name:string, country_iso_code:string, country_name:string)
+[@"https://datahub.io/core/geoip2-ipv4/r/geoip2-ipv4.csv"]
+| extend trimIP  = trim(@"[^\w]+",tostring(split(Network, "/",0)));
+cluster("https://ade.loganalytics.io/subscriptions/<SUBSCRIPTION_ID>/resourcegroups/<BASE_NAME>-rg/providers/microsoft.operationalinsights/workspaces/<BASE_NAME>loganalytics").database("<BASE_NAME>loganalytics").AzureDiagnostics
+| where TimeGenerated between (startTime .. endTime)
+| where ResourceProvider == "MICROSOFT.NETWORK" and Category == "FrontdoorAccessLog"
+| where isReceivedFromClient_b == true
+| extend trimIP = clientIp_s
+| summarize RequestCount = count() by ClientIP = trimIP, HttpVersion = httpVersion_s, Resource;

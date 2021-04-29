@@ -1,0 +1,7 @@
+
+let startTime = todatetime(<QUERY_START_TIME>);
+let endTime =  todatetime(<QUERY_END_TIME>);
+cluster("https://ade.applicationinsights.io/subscriptions/<SUBSCRIPTION_ID>/resourcegroups/<BASE_NAME>-rg/providers/microsoft.insights/components/<BASE_NAME><REGION>").database("<BASE_NAME><REGION>").requests
+| where timestamp between (startTime .. endTime)
+| where parse_json(customDimensions)["HttpMethod"] == "GET"
+| summarize AvgDurationMs = round(avg(toreal(duration)), 4), MinDurationMs = round(min(toreal(duration)), 4), 25thPercentileDurationMs = round(todecimal(percentile(toreal(duration), 25)), 4), 50thPercentileDurationMs = round(todecimal(percentile(toreal(duration), 50)), 4), 75thPercentileDurationMs = round(todecimal(percentile(toreal(duration), 75)), 4), 90thPercentileDurationMs = round(todecimal(percentile(toreal(duration), 90)), 4), MaxDurationMs = round(max(toreal(duration)), 4)
