@@ -12,7 +12,7 @@ The accelerator can be used with any Azure Functions based API, but also supplie
 
 Applying the files in the terraform directory creates a series of resources in a new resource group. In each of the locations supplied via Terraform parameter, the code creates a Consumption tier API Management instance with an Azure Functions backend. The API Management instance has an API and Operations that exactly match the endpoints exposed by the Azure Function App. An Azure Front Door instance is deployed globally and is configured with backend pools and routing rules that allow it to distribute traffic between the API Management instances. The Front Door serves as the single point of entry for the API.
 
-Each geode also receives a dedicated Azure AD application that is used to secure the geode's Function App. The API Management instance is deployed with Managed Identity and contains an `authentication-managed-identity` policy that allows it to call the Azure Functions. Traffic to the Azure Functions is thus restricted to the API Management instance in its geode. Relevant secrets are stored in a single Key Vault instance which supports the entire resource group.
+Each geode also receives a dedicated Azure AD application that is used to secure the geode's Function App. The API Management instance is deployed with Managed Identity and contains an `authentication-managed-identity` policy that allows it to call the Azure Functions. Traffic to the Azure Functions is thus restricted to the API Management instance in its geode. Each API Management instance is also secured so that the only entity capable of making requests is the Azure Front Door. Relevant secrets are stored in a single Key Vault instance which supports the entire resource group.
 
 The Terraform code also creates a Cosmos DB instance with a database and containers that are necessary for the Azure Functions. Each of the locations supplied via Terraform parameter are added as read regions. Optionally, the files can be applied with multi-region write enabled, deploying each of the same read regions with write capabilities. Other important properties on the Cosmos DB like maximum throughput on the database and containers, consistency level, etc. can also be easily supplied via Terraform parameter. Traffic is restricted so that the only entities able to run Cosmos DB queries are the set of Azure Functions in the various geodes.
 
@@ -30,9 +30,9 @@ The top level resources deployed _to each geode_ are as follows:
 - API Management
 - App Service Plan
 - Azure Functions
+- Azure Active Directory
 - Application Insights
 - Storage Account
-- Azure AD
 
 ## Use With Example Inventory API
 
@@ -50,7 +50,13 @@ Plan, and then apply the execution plan, supplying the appropriate values for yo
 terraform apply -var 'baseName=xxxxx' -var 'primaryLocation=xxxxx' -var 'additionalLocations=[\"xxxxx\"]' -var 'appServicePlanTier=xxxxx' -var 'appServicePlanSize=xxxxx' -var 'databaseMaxThroughput=xxxxx' -var 'containerMaxThroughput=xxxxx' -var 'consistencyLevel=xxxxx' -var 'availabilityZones=xxxxx' -var 'multiRegionWrite=xxxxx'
 ```
 
-Finally, deploy the Inventory API code to each of the Function Apps in the newly created resource group and test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/inventory/api/products` and `https://<BASENAME>frontdoor.azurefd.net/inventory/api/product/{id}`).
+Finally, navigate to the [/terraform/scripts](./terraform/scripts) directory and run publishfunctions.sh, passing in the language the Function App is written in and the relative paths for the directories that contain the Terraform and Azure Functions projects. The shell script ingests the outputs from the `terraform apply` and deploys the API code to each Azure Function App:
+
+```dotnetcli
+publishfunctions.sh <FUNCTION_APP_LANGUAGE> <TERRAFORM_DIRECTORY_RELATIVE_PATH> <FUNCTION_APP_DIRECTORY_RELATIVE_PATH>
+```
+
+Once the script exits, test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/inventory/api/products` and `https://<BASENAME>frontdoor.azurefd.net/inventory/api/product/{id}`).
 
 ## Use With Your Own API
 
@@ -146,7 +152,36 @@ resource "azurerm_api_management_api_operation" "getproducts" {
 
 Update the Operations to match the endpoints in your API, ensuring that the url template matches exactly so requests are properly routed.
 
-The Inventory API project relies on a `CosmosDBConnection` application setting, stored in the [local.settings.json](./src/inventory-api/sample.local.settings.json) file. Line 17 in the [function_app_settings module](./terraform/internal_modules/function_app_settings/main.tf) declares a `function_app_settings` array with the necessary key value pairs from the Inventory API's local.settings.json file. Update the array with the appropriate settings from your API's local.settings.json file.
+The Inventory API project relies on a `CosmosDBConnection` application setting, stored in the [local.settings.json](./src/inventory-api/sample.local.settings.json) file. Line 40 in the [circular_dependencies module](./terraform/internal_modules/circular_dependencies/main.tf) declares a `function_app_settings` array with the necessary key value pairs from the Inventory API's local.settings.json file:
+
+```terraform
+locals {
+  function_app_settings = [
+    {
+      name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
+      value       = var.instrumentationKey
+      slotSetting = false
+    },
+    {
+      name        = "FUNCTIONS_EXTENSION_VERSION"
+      value       = "~3"
+      slotSetting = false
+    },
+    {
+      name        = "FUNCTIONS_WORKER_RUNTIME"
+      value       = "dotnet"
+      slotSetting = false
+    },
+    {
+      name        = "CosmosDBConnection"
+      value       = "@Microsoft.KeyVault(SecretUri=${var.cosmosConnectionStringKeyVaultSecretId})"
+      slotSetting = false
+    }
+  ]
+}
+```
+
+Update the array with the appropriate settings from your API's local.settings.json file.
 
 At this point, the project has been updated to fit the new API and can now be used to globally distribute its deployment. Navigate to the terraform directory ([/terraform](./terraform)) and initialize the project:
 
@@ -160,7 +195,13 @@ Plan, and then apply the execution plan, supplying the appropriate values for yo
 terraform apply -var 'baseName=xxxxx' -var 'primaryLocation=xxxxx' -var 'additionalLocations=[\"xxxxx\"]' -var 'appServicePlanTier=xxxxx' -var 'appServicePlanSize=xxxxx' -var 'databaseMaxThroughput=xxxxx' -var 'containerMaxThroughput=xxxxx' -var 'consistencyLevel=xxxxx' -var 'availabilityZones=xxxxx' -var 'multiRegionWrite=xxxxx'
 ```
 
-Finally, deploy your Azure Function code to each of the Function apps in the newly created resource group and test the API endpoints in the Azure Front Door.
+Finally, navigate to the [/terraform/scripts](./terraform/scripts) directory and run publishfunctions.sh, passing in the language the Function App is written in and the relative paths for the directories that contain the Terraform and Azure Functions projects. The shell script ingests the outputs from the `terraform apply` and deploys the API code to each Azure Function App:
+
+```dotnetcli
+publishfunctions.sh <FUNCTION_APP_LANGUAGE> <TERRAFORM_DIRECTORY_RELATIVE_PATH> <FUNCTION_APP_DIRECTORY_RELATIVE_PATH>
+```
+
+Once the script exits, test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/...`).
 
 ## Terraform Parameters
 
