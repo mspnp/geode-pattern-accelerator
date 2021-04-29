@@ -176,12 +176,3 @@ Finally, deploy your Azure Function code to each of the Function apps in the new
 | consistencyLevel       | string   | false    | The Consistency Level to use for the CosmosDB Account - can be either BoundedStaleness, Eventual, Session, Strong or ConsistentPrefix. |
 | availabilityZones      | boolean  | false    | Should zone redundancy be enabled for the Cosmos DB regions?                                                                           |
 | multiRegionWrite       | boolean  | false    | Enable multi-master support for the Cosmos DB account.                                                                                 |
-
-## Issues and Solutions
-
-- function settings are outputted as file, figure out
-- function settings and apim security are limited due to circular dependencies in terraform
-- need directions on how to deploy function code/app settings after terraform files have been applied
-- 'Use With Your API' talks about function app settings file
-- front door waf section needs to be added to use with your api
-- give script that loops through apps and deploys function settings

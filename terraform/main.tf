@@ -354,31 +354,14 @@ module "geode" {
 
 # AZURE FUNCTION APP SETTINGS
 
-module "function_app_settings" {
+module "circular_dependencies" {
   count                                  = length(module.geode)
-  source                                 = "./internal_modules/function_app_settings"
-  instrumentationKey                     = module.geode[count.index].app_insights_instrumentation_key
+  source                                 = "./internal_modules/circular_dependencies"
+  resourceGroupName                      = azurerm_resource_group.rg.name
+  apiManagementName                      = module.geode[count.index].api_management_name
   functionAppName                        = module.geode[count.index].api_app_name
+  instrumentationKey                     = module.geode[count.index].app_insights_instrumentation_key
   cosmosConnectionStringKeyVaultSecretId = azurerm_key_vault_secret.cosmosconnectionstring.id
-}
-
-output "cosmos_endpoint" {
-  value     = azurerm_cosmosdb_account.cosmosaccount.endpoint
-  sensitive = true
-}
-
-output "cosmos_primary_key" {
-  value     = azurerm_cosmosdb_account.cosmosaccount.primary_key
-  sensitive = true
-}
-
-output "resource_group" {
-  value = azurerm_resource_group.rg.name
-}
-
-output "api_apps" {
-  value = [
-    for geode in module.geode :
-    geode.api_app_name
-  ]
+  frontDoorHeaderId                      = azurerm_frontdoor.frontdoor.header_frontdoor_id
+  azureADApplicationId                   = module.geode[count.index].azuread_application_id
 }

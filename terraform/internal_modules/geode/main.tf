@@ -59,20 +59,6 @@ resource "azurerm_api_management_api" "inventory" {
   depends_on = [null_resource.apimservice]
 }
 
-resource "azurerm_api_management_api_policy" "managedidentityapipolicy" {
-  api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
-
-  xml_content = <<XML
-<policies>
-  <inbound>
-      <authentication-managed-identity resource="${azuread_application.azuread.application_id}" />
-  </inbound>
-</policies>
-XML
-}
-
 resource "azurerm_api_management_api_operation" "getproductbyid" {
   operation_id        = "GetProductById"
   api_name            = azurerm_api_management_api.inventory.name
@@ -181,6 +167,10 @@ output "api_app_name" {
   value = azurerm_function_app.fxnapp.name
 }
 
+output "api_management_name" {
+  value = local.service_name
+}
+
 output "api_app_possible_ip_addresses" {
   value = azurerm_function_app.fxnapp.possible_outbound_ip_addresses
 }
@@ -206,5 +196,10 @@ output "api_tenant_id" {
 
 output "api_principal_id" {
   value     = azurerm_function_app.fxnapp.identity[0].principal_id
+  sensitive = true
+}
+
+output "azuread_application_id" {
+  value     = azuread_application.azuread.application_id
   sensitive = true
 }

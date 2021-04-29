@@ -10,5 +10,3 @@
 
 # .tfvars files
 *.tfvars
-
-**/app_settings/**
