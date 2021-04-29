@@ -36,7 +36,7 @@ The top level resources deployed _to each geode_ are as follows:
 
 ## Use With Example Inventory API
 
-The [/src](./src) directory contains a basic API that serves as an example and starting place for developers to get started with the accelerator. The Inventory API is designed to work with a Cosmos DB instance with an Inventory database and Products container. The API contains two endpoints, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container. The endpoints themselves utilize Cosmos DB input bindings for Azure Functions and simply return the retrieved result, without any additional C# logic. The endpoints are accessible through `https://<BASENAME><REGION>.azurewebsites.net/api/products` and `https://<BASENAME><REGION>.azurewebsites.net/api/product/{id}`.
+The [/src](./src) directory contains a basic API that serves as an example and place for developers to get started with the accelerator. The Inventory API is designed to work with a Cosmos DB instance with an Inventory database and Products container. The API contains two endpoints, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container. The endpoints themselves utilize Cosmos DB input bindings for Azure Functions and simply return the retrieved result, without any additional C# logic. The endpoints are accessible through `https://<BASENAME><REGION>.azurewebsites.net/api/products` and `https://<BASENAME><REGION>.azurewebsites.net/api/product/{id}`.
 
 Navigate to the [/terraform](./terraform) directory and initialize the project:
 
@@ -217,3 +217,11 @@ Once the script exits, test the API endpoints in the Azure Front Door (`https://
 | consistencyLevel       | string   | false    | The Consistency Level to use for the CosmosDB Account - can be either BoundedStaleness, Eventual, Session, Strong or ConsistentPrefix. |
 | availabilityZones      | boolean  | false    | Should zone redundancy be enabled for the Cosmos DB regions?                                                                           |
 | multiRegionWrite       | boolean  | false    | Enable multi-master support for the Cosmos DB account.                                                                                 |
+
+## Security
+
+All services in the API architecture are secure, aside from the Azure Front Door. The Cosmos DB is inaccessible to all entities except the Azure Function Apps through IP restriction. The Azure Functions are deployed alongside a dedicated Azure Active Directory application that is used to restrict access to the Function endpoints. The endpoints are only accessible via the API Management instance in the same geode, which have Managed Identity and a corresponding `authentication-managed-identity` policy that allow it to authorize requests to the Azure Functions backend. Each API Management instance in the created resource group contains additional policies that make it inaccessible from all origins except the Azure Front Door. Front Doors are created with a unique ID that is attached to all requests to its backend pools via headers. The API Management API entities contain policies that check for the unique ID in the request headers and return 401s if it is not present.
+
+The only accessible ingress point for the API is the Azure Front Door. The Front Door instance is designed to be deployed without security measures in order for you to add the appropriate ones for your needs. Azure Front Door is deployed alongside a [Front Door specific Web Application Firewall](https://docs.microsoft.com/en-us/azure/web-application-firewall/afds/afds-overview) (WAF). WAF policies should be added to the Front Door in the [main.tf](./terraform/main.tf) file ([azurerm_frontdoor_firewall_policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/frontdoor_firewall_policy)) and can secure the API from a number of vulnerabilities, provide custom access, rate limit, and more.
+
+## Monitoring
