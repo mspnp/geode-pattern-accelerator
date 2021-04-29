@@ -1,3 +1,5 @@
+// Displays the minimum, maximum, average, and percentile duration data over a period of time for write requests. Supply a start and end time for the query range and update the cluster uri with the appropriate values from your terraform deployment.
+
 let startTime = todatetime(<QUERY_START_TIME>);
 let endTime =  todatetime(<QUERY_END_TIME>);
 cluster("https://ade.loganalytics.io/subscriptions/<SUBSCRIPTION_ID>/resourcegroups/<BASE_NAME>-rg/providers/microsoft.operationalinsights/workspaces/<BASE_NAME>loganalytics").database("<BASE_NAME>loganalytics").AzureDiagnostics

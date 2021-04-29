@@ -1,3 +1,5 @@
+// Displays the number of incoming requests from each ip address over a period of time. Supply a start and end time for the query range and update the cluster uri with the appropriate values from your terraform deployment.
+
 let startTime = todatetime(<QUERY_START_TIME>);
 let endTime =  todatetime(<QUERY_END_TIME>);
 let countries = externaldata(Network:string, geoname_id:string, continent_code:string, continent_name:string, country_iso_code:string, country_name:string)
