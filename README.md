@@ -225,3 +225,40 @@ All services in the API architecture are secure, aside from the Azure Front Door
 The only accessible ingress point for the API is the Azure Front Door. The accelerator is designed to deploy the Front Door without security measures in order for you to add the appropriate ones for your needs. Azure Front Door is deployed alongside a [Front Door specific Web Application Firewall](https://docs.microsoft.com/en-us/azure/web-application-firewall/afds/afds-overview) (WAF). WAF policies should be added to the Front Door in the [main.tf](./terraform/main.tf) file ([azurerm_frontdoor_firewall_policy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/frontdoor_firewall_policy)) and can secure the API from a number of vulnerabilities, provide custom access, rate limit, and more.
 
 ## Monitoring
+
+The [/monitoring](./monitoring) directory contains kusto queries that can be run against the different services within the API architecture. As previously mentioned, the Front Door and Cosmos DB are configured to stream logs to Log Analytics, while the Azure Functions are deployed with a corresponding Application Insights. The queries each contain a `cluster()` function that connects to these monitoring resources and must be updated with the `baseName` value provided earlier as a Terraform parameter.
+
+The following tables list the provided queries with a brief description:
+
+##### Front Door
+
+| Kusto Query                                                                                        | Description                                                                                                             |
+| -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| [backend_errors.kql](./monitoring/front_door/backend_errors.kql)                                   | Displays the number of errors thrown by each backend in the Front Door's backend pool over a period of time.            |
+| [incoming_requests_by_ip_address.kql](./monitoring/front_door/incoming_requests_by_ip_address.kql) | Displays the number of incoming requests from each IP address over a period of time.                                    |
+| [requests_per_second.kql](./monitoring/front_door/requests_per_second.kql)                         | Displays the requests per second handled by the Front Door over a period of time.                                       |
+| [routed_requests_by_backend_host.kql](./monitoring/front_door/routed_requests_by_backend_host.kql) | Displays the number of incoming requests routed to each backend in the Front Door's backend pool over a period of time. |
+
+##### Azure Functions
+
+| Kusto Query                                                                                   | Description                                                                                                    |
+| --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [function_instance_scaleout.kql](./monitoring/azure_functions/function_instance_scaleout.kql) | Displays the number of instances the Function App scaled to over a period of time.                             |
+| [overall_response_duration.kql](./monitoring/azure_functions/overall_response_duration.kql)   | Displays the minimum, maximum, average, and percentile duration data over a period of time for all requests.   |
+| [read_response_duration.kql](./monitoring/azure_functions/read_response_duration.kql)         | Displays the minimum, maximum, average, and percentile duration data over a period of time for read requests.  |
+| [response_codes.kql](./monitoring/azure_functions/response_codes.kql)                         | Displays the count for each response code returned from the Function App over a period of time.                |
+| [total_requests.kql](./monitoring/azure_functions/total_requests.kql)                         | Displays the total number of requests handled by the Function App over a period of time.                       |
+| [write_response_duration.kql](./monitoring/azure_functions/write_response_duration.kql)       | Displays the minimum, maximum, average, and percentile duration data over a period of time for write requests. |
+
+##### Cosmos DB
+
+| Kusto Query                                                                           | Description                                                                                                    |
+| ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| [consumed_rus.kql](./monitoring/cosmos_db/consumed_rus.kql)                           | Displays the consumed RUs for the Cosmos DB over a period of time.                                             |
+| [read_operation_duration.kql](./monitoring/cosmos_db/read_operation_duration.kql)     | Displays the minimum, maximum, average, and percentile duration data over a period of time for read requests.  |
+| [total_failed_requests.kql](./monitoring/cosmos_db/total_failed_requests.kql)         | Displays the total number of failed requests over a period of time.                                            |
+| [total_read_requests.kql](./monitoring/cosmos_db/total_read_requests.kql)             | Displays the total number of read requests over a period of time.                                              |
+| [total_successful_requests.kql](./monitoring/cosmos_db/total_successful_requests.kql) | Displays the total number of successful requests over a period of time.                                        |
+| [total_throttled_requests.kql](./monitoring/cosmos_db/total_throttled_requests.kql)   | Displays the total number of throttled requests over a period of time.                                         |
+| [total_write_requests.kql](./monitoring/cosmos_db/total_write_requests.kql)           | Displays the total number of write requests over a period of time.                                             |
+| [write_operation_duration.kql](./monitoring/cosmos_db/write_operation_duration.kql)   | Displays the minimum, maximum, average, and percentile duration data over a period of time for write requests. |
