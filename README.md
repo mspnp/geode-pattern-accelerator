@@ -1,6 +1,6 @@
 # Geode Pattern Accelerator
 
-The accelerator is designed to help developers with Azure Functions based APIs that utilize Cosmos DB as a data store to implement the geode pattern by deploying their API to geodes in distributed Azure regions.
+The accelerator is designed to help developers with Azure Functions based APIs that utilize Cosmos DB as a data store to implement the [geode pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/geodes) by deploying their API to geodes in distributed Azure regions.
 
 ![Geode Pattern](./images/GeodeWorldMap.png)
 
