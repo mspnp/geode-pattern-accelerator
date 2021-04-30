@@ -1,18 +1,18 @@
 locals {
-  service_name = "${var.baseName}${var.location}"
+  service_name = "${var.base_name}${var.location}"
 }
 
 # API MANAGEMENT
 
 resource "null_resource" "apimservice" {
   provisioner "local-exec" {
-    command = "az apim create --name ${local.service_name} -g ${var.resourceGroupName} -l ${var.location} --sku-name Consumption --publisher-email publisher@example.com --publisher-name Publisher"
+    command = "az apim create --name ${local.service_name} -g ${var.resource_group_name} -l ${var.location} --sku-name Consumption --publisher-email publisher@example.com --publisher-name Publisher"
   }
 }
 
 resource "null_resource" "apimservicemanagedidentity" {
   provisioner "local-exec" {
-    command = "az apim update --name ${local.service_name} -g ${var.resourceGroupName} --enable-managed-identity true"
+    command = "az apim update --name ${local.service_name} -g ${var.resource_group_name} --enable-managed-identity true"
   }
 
   depends_on = [null_resource.apimservice]
@@ -20,7 +20,7 @@ resource "null_resource" "apimservicemanagedidentity" {
 
 resource "azurerm_api_management_api" "inventory" {
   name                  = "Inventory"
-  resource_group_name   = var.resourceGroupName
+  resource_group_name   = var.resource_group_name
   api_management_name   = local.service_name
   revision              = "1"
   display_name          = "Inventory"
@@ -36,7 +36,7 @@ resource "azurerm_api_management_api_operation" "getproductbyid" {
   operation_id        = "GetProductById"
   api_name            = azurerm_api_management_api.inventory.name
   api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
+  resource_group_name = var.resource_group_name
   display_name        = "GetProductById"
   method              = "GET"
   url_template        = "/api/product/{id}"
@@ -57,7 +57,7 @@ resource "azurerm_api_management_api_operation" "getproducts" {
   operation_id        = "GetProducts"
   api_name            = azurerm_api_management_api.inventory.name
   api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
+  resource_group_name = var.resource_group_name
   display_name        = "GetProducts"
   method              = "GET"
   url_template        = "/api/products"
@@ -83,13 +83,13 @@ resource "azuread_application" "azuread" {
 resource "azurerm_application_insights" "fxnappinsights" {
   name                = local.service_name
   location            = var.location
-  resource_group_name = var.resourceGroupName
+  resource_group_name = var.resource_group_name
   application_type    = "web"
 }
 
 resource "azurerm_storage_account" "fxnstorage" {
   name                     = local.service_name
-  resource_group_name      = var.resourceGroupName
+  resource_group_name      = var.resource_group_name
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -99,19 +99,19 @@ resource "azurerm_storage_account" "fxnstorage" {
 resource "azurerm_app_service_plan" "fxnase" {
   name                = local.service_name
   location            = var.location
-  resource_group_name = var.resourceGroupName
+  resource_group_name = var.resource_group_name
   kind                = "functionapp"
 
   sku {
-    tier = var.appServicePlanTier
-    size = var.appServicePlanSize
+    tier = var.app_service_plan_tier
+    size = var.app_service_plan_size
   }
 }
 
 resource "azurerm_function_app" "fxnapp" {
   name                       = local.service_name
   location                   = var.location
-  resource_group_name        = var.resourceGroupName
+  resource_group_name        = var.resource_group_name
   app_service_plan_id        = azurerm_app_service_plan.fxnase.id
   storage_account_name       = azurerm_storage_account.fxnstorage.name
   storage_account_access_key = azurerm_storage_account.fxnstorage.primary_access_key

@@ -2,29 +2,29 @@
 
 resource "azurerm_api_management_named_value" "frontdoorheader" {
   name                = "frontDoorHeader"
-  api_management_name = var.apiManagementName
-  resource_group_name = var.resourceGroupName
+  api_management_name = var.api_management_name
+  resource_group_name = var.resource_group_name
   display_name        = "frontDoorHeader"
   value               = "X-Azure-FDID"
 }
 
 resource "azurerm_api_management_named_value" "frontdoorheadervalue" {
   name                = "frontDoorHeaderValue"
-  api_management_name = var.apiManagementName
-  resource_group_name = var.resourceGroupName
+  api_management_name = var.api_management_name
+  resource_group_name = var.resource_group_name
   display_name        = "frontDoorHeaderValue"
-  value               = var.frontDoorHeaderId
+  value               = var.front_door_header_id
 }
 
 resource "azurerm_api_management_api_policy" "apipolicy" {
   api_name            = "Inventory"
-  api_management_name = var.apiManagementName
-  resource_group_name = var.resourceGroupName
+  api_management_name = var.api_management_name
+  resource_group_name = var.resource_group_name
 
   xml_content = <<XML
 <policies>
   <inbound>
-      <authentication-managed-identity resource="${var.azureADApplicationId}" />
+      <authentication-managed-identity resource="${var.azure_ad_application_id}" />
       <check-header name="{{frontDoorHeader}}" failed-check-httpcode="401" failed-check-error-message="Not authorized" ignore-case="false">
         <value>{{frontDoorHeaderValue}}</value>
       </check-header>
@@ -41,7 +41,7 @@ locals {
   function_app_settings = [
     {
       name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
-      value       = var.instrumentationKey
+      value       = var.instrumentation_key
       slotSetting = false
     },
     {
@@ -56,7 +56,7 @@ locals {
     },
     {
       name        = "CosmosDBConnection"
-      value       = "@Microsoft.KeyVault(SecretUri=${var.cosmosConnectionStringKeyVaultSecretId})"
+      value       = "@Microsoft.KeyVault(SecretUri=${var.cosmos_connection_string_key_vault_secret_id})"
       slotSetting = false
     }
   ]
@@ -64,7 +64,7 @@ locals {
 
 resource "null_resource" "fxnappsettings" {
   provisioner "local-exec" {
-    command = "az functionapp config appsettings set -g ${var.resourceGroupName} -n ${var.functionAppName} --settings ${jsonencode(local.function_app_settings)}"
+    command = "az functionapp config appsettings set -g ${var.resource_group_name} -n ${var.function_app_name} --settings ${jsonencode(local.function_app_settings)}"
   }
 }
 

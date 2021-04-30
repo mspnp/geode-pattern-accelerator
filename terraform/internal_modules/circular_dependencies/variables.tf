@@ -1,34 +1,34 @@
-variable "resourceGroupName" {
+variable "resource_group_name" {
   type        = string
   description = "The name of the Resource Group in which to deploy API resources."
 }
 
-variable "functionAppName" {
+variable "function_app_name" {
   type        = string
-  description = "The name of the Azure Function app"
+  description = "The name of the Azure Function app."
 }
 
-variable "apiManagementName" {
+variable "api_management_name" {
   type        = string
-  description = "The name of the API Management Instance"
+  description = "The name of the API Management Instance."
 }
 
-variable "instrumentationKey" {
+variable "instrumentation_key" {
   type        = string
-  description = "The Application Insights instrumentation key"
+  description = "The Application Insights instrumentation key."
 }
 
-variable "cosmosConnectionStringKeyVaultSecretId" {
+variable "cosmos_connection_string_key_vault_secret_id" {
   type        = string
-  description = "The ID for the Key Vault secret which stores the connection string for the Cosmos DB instance"
+  description = "The ID for the Key Vault secret which stores the connection string for the Cosmos DB instance."
 }
 
-variable "frontDoorHeaderId" {
+variable "front_door_header_id" {
   type        = string
   description = "The unique Header ID of the Front Door."
 }
 
-variable "azureADApplicationId" {
+variable "azure_ad_application_id" {
   type        = string
   description = "The ID of the Azure AD Application."
 }

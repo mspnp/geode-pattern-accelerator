@@ -3,7 +3,7 @@ provider "azurerm" {
 }
 
 locals {
-  allLocations = concat([var.primaryLocation], var.additionalLocations)
+  allLocations = concat([var.primary_location], var.additional_locations)
   api_apps_possible_ip_addresses = [
     for geode in module.geode :
     geode.api_app_possible_ip_addresses
@@ -13,14 +13,14 @@ locals {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${var.baseName}-rg"
-  location = var.primaryLocation
+  name     = "${var.base_name}-rg"
+  location = var.primary_location
 }
 
 # FRONT DOOR
 
 resource "azurerm_frontdoor" "frontdoor" {
-  name                                         = "${var.baseName}frontdoor"
+  name                                         = "${var.base_name}frontdoor"
   location                                     = "global"
   resource_group_name                          = azurerm_resource_group.rg.name
   enforce_backend_pools_certificate_name_check = false
@@ -52,7 +52,7 @@ resource "azurerm_frontdoor" "frontdoor" {
 
   frontend_endpoint {
     name                              = "geodeAPIFrontendEndpoint"
-    host_name                         = "${var.baseName}frontdoor.azurefd.net"
+    host_name                         = "${var.base_name}frontdoor.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 
@@ -97,8 +97,8 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoordiagnosticsetting" {
 # LOG ANALYTICS
 
 resource "azurerm_log_analytics_workspace" "loganalytics" {
-  name                = "${var.baseName}loganalytics"
-  location            = var.primaryLocation
+  name                = "${var.base_name}loganalytics"
+  location            = var.primary_location
   resource_group_name = azurerm_resource_group.rg.name
   sku                 = "PerGB2018"
   retention_in_days   = 180
@@ -107,31 +107,31 @@ resource "azurerm_log_analytics_workspace" "loganalytics" {
 # COSMOS DB
 
 resource "azurerm_cosmosdb_account" "cosmosaccount" {
-  name                            = "${var.baseName}cosmos"
-  location                        = var.primaryLocation
+  name                            = "${var.base_name}cosmos"
+  location                        = var.primary_location
   resource_group_name             = azurerm_resource_group.rg.name
   offer_type                      = "Standard"
   kind                            = "GlobalDocumentDB"
-  enable_multiple_write_locations = var.multiRegionWrite
+  enable_multiple_write_locations = var.multi_region_write
   enable_automatic_failover       = true
   ip_range_filter                 = join(",", local.api_apps_possible_ip_addresses)
 
   consistency_policy {
-    consistency_level = var.consistencyLevel
+    consistency_level = var.consistency_level
   }
 
   geo_location {
     location          = azurerm_resource_group.rg.location
     failover_priority = 0
-    zone_redundant    = var.availabilityZones
+    zone_redundant    = var.availability_zones
   }
 
   dynamic "geo_location" {
-    for_each = var.additionalLocations
+    for_each = var.additional_locations
     content {
       location          = geo_location.value
-      failover_priority = index(var.additionalLocations, geo_location.value) + 1
-      zone_redundant    = var.availabilityZones
+      failover_priority = index(var.additional_locations, geo_location.value) + 1
+      zone_redundant    = var.availability_zones
     }
   }
 }
@@ -141,7 +141,7 @@ resource "azurerm_cosmosdb_sql_database" "inventory" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmosaccount.name
   autoscale_settings {
-    max_throughput = var.databaseMaxThroughput
+    max_throughput = var.database_max_throughput
   }
 }
 
@@ -152,7 +152,7 @@ resource "azurerm_cosmosdb_sql_container" "products" {
   database_name       = azurerm_cosmosdb_sql_database.inventory.name
   partition_key_path  = "/id"
   autoscale_settings {
-    max_throughput = var.containerMaxThroughput
+    max_throughput = var.container_max_throughput
   }
 }
 
@@ -235,8 +235,8 @@ resource "azurerm_monitor_diagnostic_setting" "cosmosdiagnosticsetting" {
 # KEY VAUlT
 
 resource "azurerm_key_vault" "keyvault" {
-  name                = "${var.baseName}keyvault"
-  location            = var.primaryLocation
+  name                = "${var.base_name}keyvault"
+  location            = var.primary_location
   resource_group_name = azurerm_resource_group.rg.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
@@ -274,25 +274,25 @@ resource "azurerm_key_vault_secret" "cosmosconnectionstring" {
 # GEODE API
 
 module "geode" {
-  count              = length(local.allLocations)
-  source             = "./internal_modules/geode"
-  baseName           = var.baseName
-  location           = local.allLocations[count.index]
-  resourceGroupName  = azurerm_resource_group.rg.name
-  appServicePlanTier = var.appServicePlanTier
-  appServicePlanSize = var.appServicePlanSize
+  count                 = length(local.allLocations)
+  source                = "./internal_modules/geode"
+  base_name             = var.base_name
+  location              = local.allLocations[count.index]
+  resource_group_name   = azurerm_resource_group.rg.name
+  app_service_plan_tier = var.app_service_plan_tier
+  app_service_plan_size = var.app_service_plan_size
 }
 
-# AZURE FUNCTION APP SETTINGS
+# CIRCULAR DEPENDENCIES
 
 module "circular_dependencies" {
-  count                                  = length(module.geode)
-  source                                 = "./internal_modules/circular_dependencies"
-  resourceGroupName                      = azurerm_resource_group.rg.name
-  apiManagementName                      = module.geode[count.index].api_management_name
-  functionAppName                        = module.geode[count.index].api_app_name
-  instrumentationKey                     = module.geode[count.index].app_insights_instrumentation_key
-  cosmosConnectionStringKeyVaultSecretId = azurerm_key_vault_secret.cosmosconnectionstring.id
-  frontDoorHeaderId                      = azurerm_frontdoor.frontdoor.header_frontdoor_id
-  azureADApplicationId                   = module.geode[count.index].azuread_application_id
+  count                                        = length(module.geode)
+  source                                       = "./internal_modules/circular_dependencies"
+  resource_group_name                          = azurerm_resource_group.rg.name
+  api_management_name                          = module.geode[count.index].api_management_name
+  function_app_name                            = module.geode[count.index].api_app_name
+  instrumentation_key                          = module.geode[count.index].app_insights_instrumentation_key
+  cosmos_connection_string_key_vault_secret_id = azurerm_key_vault_secret.cosmosconnectionstring.id
+  front_door_header_id                         = azurerm_frontdoor.frontdoor.header_frontdoor_id
+  azure_ad_application_id                      = module.geode[count.index].azuread_application_id
 }

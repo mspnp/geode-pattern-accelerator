@@ -1,4 +1,4 @@
-variable "baseName" {
+variable "base_name" {
   type        = string
   description = "The base name for created resources, used for tagging as a group."
 }
@@ -8,18 +8,18 @@ variable "location" {
   description = "The Azure region in which to deploy API resources."
 }
 
-variable "resourceGroupName" {
+variable "resource_group_name" {
   type        = string
   description = "The name of the Resource Group in which to deploy API resources."
 }
 
-variable "appServicePlanTier" {
+variable "app_service_plan_tier" {
   type        = string
   description = "Specifies the Azure Functions App Service plan pricing tier."
   default     = "Dynamic"
 }
 
-variable "appServicePlanSize" {
+variable "app_service_plan_size" {
   type        = string
   description = "Specifies the Azure Functions App Service plan instance size tier."
   default     = "Y1"
