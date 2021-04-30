@@ -183,7 +183,7 @@ locals {
 
 Update the array with the appropriate settings from your API's local.settings.json file.
 
-At this point, the project has been updated to fit the new API and can now be used to globally distribute its deployment. Navigate to the terraform directory ([/terraform](./terraform)) and initialize the project:
+At this point, the project has been updated to fit the new API and can now be used to globally distribute its deployment. Navigate to the [/terraform](./terraform) directory and initialize the project:
 
 ```dotnetcli
 terraform init
@@ -230,7 +230,7 @@ The [/monitoring](./monitoring) directory contains kusto queries that can be run
 
 The following tables list the provided queries with a brief description:
 
-##### Front Door
+### Front Door
 
 | Kusto Query                                                                                        | Description                                                                                                             |
 | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
@@ -239,7 +239,7 @@ The following tables list the provided queries with a brief description:
 | [requests_per_second.kql](./monitoring/front_door/requests_per_second.kql)                         | Displays the requests per second handled by the Front Door over a period of time.                                       |
 | [routed_requests_by_backend_host.kql](./monitoring/front_door/routed_requests_by_backend_host.kql) | Displays the number of incoming requests routed to each backend in the Front Door's backend pool over a period of time. |
 
-##### Azure Functions
+### Azure Functions
 
 | Kusto Query                                                                                   | Description                                                                                                    |
 | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -250,7 +250,7 @@ The following tables list the provided queries with a brief description:
 | [total_requests.kql](./monitoring/azure_functions/total_requests.kql)                         | Displays the total number of requests handled by the Function App over a period of time.                       |
 | [write_response_duration.kql](./monitoring/azure_functions/write_response_duration.kql)       | Displays the minimum, maximum, average, and percentile duration data over a period of time for write requests. |
 
-##### Cosmos DB
+### Cosmos DB
 
 | Kusto Query                                                                           | Description                                                                                                    |
 | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
