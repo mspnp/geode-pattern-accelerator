@@ -152,7 +152,7 @@ resource "azurerm_api_management_api_operation" "getproducts" {
 
 Update the Operations to match the endpoints in your API, ensuring that the url template matches exactly so requests are properly routed.
 
-The Inventory API project relies on a `CosmosDBConnection` application setting, stored in the [local.settings.json](./src/inventory-api/sample.local.settings.json) file. Line 40 in the [circular_dependencies module](./terraform/internal_modules/circular_dependencies/main.tf) declares a `function_app_settings` array with the necessary key value pairs from the Inventory API's local.settings.json file:
+The Inventory API project relies on a `CosmosDBConnection` application setting, stored in the [local.settings.json](./src/inventory-api/inventory-api/sample.local.settings.json) file. Line 40 in the [circular_dependencies module](./terraform/internal_modules/circular_dependencies/main.tf) declares a `function_app_settings` array with the necessary key value pairs from the Inventory API's local.settings.json file:
 
 ```terraform
 locals {
