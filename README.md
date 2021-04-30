@@ -47,7 +47,7 @@ terraform init
 Plan, and then apply the execution plan, supplying the appropriate values for your needs for each parameter:
 
 ```dotnetcli
-terraform apply -var 'baseName=xxxxx' -var 'primaryLocation=xxxxx' -var 'additionalLocations=[\"xxxxx\"]' -var 'appServicePlanTier=xxxxx' -var 'appServicePlanSize=xxxxx' -var 'databaseMaxThroughput=xxxxx' -var 'containerMaxThroughput=xxxxx' -var 'consistencyLevel=xxxxx' -var 'availabilityZones=xxxxx' -var 'multiRegionWrite=xxxxx'
+terraform apply -var 'base_name=xxxxx' -var 'primary_location=xxxxx' -var 'additional_locations=[\"xxxxx\"]' -var 'app_service_plan_tier=xxxxx' -var 'app_service_plan_size=xxxxx' -var 'database_max_throughput=xxxxx' -var 'container_max_throughput=xxxxx' -var 'consistency_level=xxxxx' -var 'availability_zones=xxxxx' -var 'multi_region_write=xxxxx'
 ```
 
 Finally, navigate to the [/terraform/scripts](./terraform/scripts) directory and run publishfunctions.sh, passing in the language the Function App is written in and the relative paths for the directories that contain the Terraform and Azure Functions projects. The shell script ingests the outputs from the `terraform apply` and deploys the API code to each Azure Function App:
@@ -64,7 +64,7 @@ The accelerator contains a .NET Azure Functions based Inventory API ([/src/inven
 
 Assuming you have an Azure Functions based API that uses Cosmos DB as a data store, the Inventory API can be deleted from the repository entirely and a new Azure Functions project can be moved into the repo. In order for the accelerator to work with your API, the Terraform code will need to be updated in a few key places.
 
-The Cosmos DB database and container resources are declared on line 208 of [main.tf](./terraform/main.tf), . Update the "inventory" database and "products" container with the appropriate names and partition keys:
+The Cosmos DB database and container resources are declared on line 139 of [main.tf](./terraform/main.tf). Update the "inventory" database and "products" container with the appropriate names and partition keys:
 
 ```terraform
 resource "azurerm_cosmosdb_sql_database" "inventory" {
@@ -72,7 +72,7 @@ resource "azurerm_cosmosdb_sql_database" "inventory" {
   resource_group_name = azurerm_resource_group.rg.name
   account_name        = azurerm_cosmosdb_account.cosmosaccount.name
   autoscale_settings {
-    max_throughput = var.databaseMaxThroughput
+    max_throughput = var.database_max_throughput
   }
 }
 
@@ -83,19 +83,19 @@ resource "azurerm_cosmosdb_sql_container" "products" {
   database_name       = azurerm_cosmosdb_sql_database.inventory.name
   partition_key_path  = "/id"
   autoscale_settings {
-    max_throughput = var.containerMaxThroughput
+    max_throughput = var.container_max_throughput
   }
 }
 ```
 
 The API Management API(s) and Operations will need to be updated to match the endpoints in your API.
 
-On line 48 of [main.tf](./terraform/internal_modules/geode/main.tf) in the geode module, the "inventory" API is declared with path, protocols, etc. specified:
+On line 21 of [main.tf](./terraform/internal_modules/geode/main.tf) in the geode module, the "inventory" API is declared with path, protocols, etc. specified:
 
 ```terraform
 resource "azurerm_api_management_api" "inventory" {
   name                  = "Inventory"
-  resource_group_name   = var.resourceGroupName
+  resource_group_name   = var.resource_group_name
   api_management_name   = local.service_name
   revision              = "1"
   display_name          = "Inventory"
@@ -110,14 +110,14 @@ resource "azurerm_api_management_api" "inventory" {
 
 Rename the API and update its properties to fit your API's needs.
 
-The two endpoints, GetProducts and GetProductById, are declared on line 76:
+The two endpoints, GetProducts and GetProductById, are declared on line 35:
 
 ```terraform
 resource "azurerm_api_management_api_operation" "getproductbyid" {
   operation_id        = "GetProductById"
   api_name            = azurerm_api_management_api.inventory.name
   api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
+  resource_group_name = var.resource_group_name
   display_name        = "GetProductById"
   method              = "GET"
   url_template        = "/api/product/{id}"
@@ -138,7 +138,7 @@ resource "azurerm_api_management_api_operation" "getproducts" {
   operation_id        = "GetProducts"
   api_name            = azurerm_api_management_api.inventory.name
   api_management_name = local.service_name
-  resource_group_name = var.resourceGroupName
+  resource_group_name = var.resource_group_name
   display_name        = "GetProducts"
   method              = "GET"
   url_template        = "/api/products"
@@ -159,7 +159,7 @@ locals {
   function_app_settings = [
     {
       name        = "APPINSIGHTS_INSTRUMENTATIONKEY"
-      value       = var.instrumentationKey
+      value       = var.instrumentation_key
       slotSetting = false
     },
     {
@@ -174,7 +174,7 @@ locals {
     },
     {
       name        = "CosmosDBConnection"
-      value       = "@Microsoft.KeyVault(SecretUri=${var.cosmosConnectionStringKeyVaultSecretId})"
+      value       = "@Microsoft.KeyVault(SecretUri=${var.cosmos_connection_string_key_vault_secret_id})"
       slotSetting = false
     }
   ]
@@ -192,7 +192,7 @@ terraform init
 Plan, and then apply the execution plan, supplying the appropriate values for your needs for each parameter:
 
 ```dotnetcli
-terraform apply -var 'baseName=xxxxx' -var 'primaryLocation=xxxxx' -var 'additionalLocations=[\"xxxxx\"]' -var 'appServicePlanTier=xxxxx' -var 'appServicePlanSize=xxxxx' -var 'databaseMaxThroughput=xxxxx' -var 'containerMaxThroughput=xxxxx' -var 'consistencyLevel=xxxxx' -var 'availabilityZones=xxxxx' -var 'multiRegionWrite=xxxxx'
+terraform apply -var 'base_name=xxxxx' -var 'primary_location=xxxxx' -var 'additional_locations=[\"xxxxx\"]' -var 'app_service_plan_tier=xxxxx' -var 'app_service_plan_size=xxxxx' -var 'database_max_throughput=xxxxx' -var 'container_max_throughput=xxxxx' -var 'consistency_level=xxxxx' -var 'availability_zones=xxxxx' -var 'multi_region_write=xxxxx'
 ```
 
 Finally, navigate to the [/terraform/scripts](./terraform/scripts) directory and run publishfunctions.sh, passing in the language the Function App is written in and the relative paths for the directories that contain the Terraform and Azure Functions projects. The shell script ingests the outputs from the `terraform apply` and deploys the API code to each Azure Function App:
