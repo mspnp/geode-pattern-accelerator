@@ -52,6 +52,8 @@ terraform apply -var 'base_name=xxxxx' -var 'primary_location=xxxxx' -var 'addit
 
 Finally, navigate to the [/terraform/scripts](./terraform/scripts) directory and run publishfunctions.sh, passing in the language the Function App is written in and the relative paths for the directories that contain the Terraform and Azure Functions projects. The shell script ingests the outputs from the `terraform apply` and deploys the API code to each Azure Function App:
 
+_Note: The script requires that [Azure Functions Core Tools 3.x](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=windows%2Ccsharp%2Cbash#install-the-azure-functions-core-tools) be installed on the machine._
+
 ```dotnetcli
 publishfunctions.sh <FUNCTION_APP_LANGUAGE> <TERRAFORM_DIRECTORY_RELATIVE_PATH> <FUNCTION_APP_DIRECTORY_RELATIVE_PATH>
 ```
