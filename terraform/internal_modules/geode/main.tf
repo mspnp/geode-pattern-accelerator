@@ -72,11 +72,13 @@ resource "azurerm_api_management_api_operation" "getproducts" {
 
 resource "azuread_application" "azuread" {
   display_name               = local.service_name
-  reply_urls                 = ["https://${local.service_name}.azurewebsites.net/.auth/login/aad/callback"]
-  available_to_other_tenants = false
-  oauth2_allow_implicit_flow = true
+  web {
+    redirect_uris = ["https://${local.service_name}.azurewebsites.net/.auth/login/aad/callback"]
+    implicit_grant {
+      access_token_issuance_enabled = true
+    }
+  }
 }
-
 
 # AZURE FUNCTION
 

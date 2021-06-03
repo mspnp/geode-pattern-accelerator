@@ -21,7 +21,6 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_frontdoor" "frontdoor" {
   name                                         = "${var.base_name}frontdoor"
-  location                                     = "global"
   resource_group_name                          = azurerm_resource_group.rg.name
   enforce_backend_pools_certificate_name_check = false
 
@@ -53,7 +52,6 @@ resource "azurerm_frontdoor" "frontdoor" {
   frontend_endpoint {
     name                              = "geodeAPIFrontendEndpoint"
     host_name                         = "${var.base_name}frontdoor.azurefd.net"
-    custom_https_provisioning_enabled = false
   }
 
   routing_rule {
