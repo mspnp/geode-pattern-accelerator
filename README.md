@@ -55,7 +55,7 @@ Finally, navigate to the [/terraform/scripts](./terraform/scripts) directory and
 _Note: The script requires that [Azure Functions Core Tools 3.x](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=windows%2Ccsharp%2Cbash#install-the-azure-functions-core-tools) be installed on the machine._
 
 ```dotnetcli
-publishfunctions.sh <FUNCTION_APP_LANGUAGE> <TERRAFORM_DIRECTORY_RELATIVE_PATH> <FUNCTION_APP_DIRECTORY_RELATIVE_PATH>
+publishfunctions.sh csharp ../ ../../src/inventory-api/inventory-api
 ```
 
 Once the script exits, test the API endpoints in the Azure Front Door (`https://<BASENAME>frontdoor.azurefd.net/inventory/api/products` and `https://<BASENAME>frontdoor.azurefd.net/inventory/api/product/{id}`).
