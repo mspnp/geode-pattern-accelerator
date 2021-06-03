@@ -6,7 +6,7 @@ locals {
 
 resource "null_resource" "apimservice" {
   provisioner "local-exec" {
-    command = "az apim create --name ${local.service_name} -g ${var.resource_group_name} -l ${var.location} --sku-name Consumption --publisher-email publisher@example.com --publisher-name Publisher"
+    command = "az apim create --name ${local.service_name} -g ${var.resource_group_name} -l ${var.location} --sku-name Consumption --sku-capacity 0 --publisher-email publisher@example.com --publisher-name Publisher"
   }
 }
 
