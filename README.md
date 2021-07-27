@@ -264,3 +264,11 @@ The following tables list the provided queries with a brief description:
 | [total_throttled_requests.kql](./monitoring/cosmos_db/total_throttled_requests.kql)   | Displays the total number of throttled requests over a period of time.                                         |
 | [total_write_requests.kql](./monitoring/cosmos_db/total_write_requests.kql)           | Displays the total number of write requests over a period of time.                                             |
 | [write_operation_duration.kql](./monitoring/cosmos_db/write_operation_duration.kql)   | Displays the minimum, maximum, average, and percentile duration data over a period of time for write requests. |
+
+## Contributions
+
+Please see our [contributor guide](./CONTRIBUTING.md).
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact <opencode@microsoft.com> with any additional questions or comments.
+
+Microsoft Patterns & Practices, [Azure Architecture Center](https://aka.ms/architecture).
