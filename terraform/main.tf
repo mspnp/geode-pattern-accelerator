@@ -292,5 +292,5 @@ module "circular_dependencies" {
   instrumentation_key                          = module.geode[count.index].app_insights_instrumentation_key
   cosmos_connection_string_key_vault_secret_id = azurerm_key_vault_secret.cosmosconnectionstring.id
   front_door_header_id                         = azurerm_frontdoor.frontdoor.header_frontdoor_id
-  azure_ad_application_id                      = module.geode[count.index].azuread_application_id
+  entra_id_application_id                      = module.geode[count.index].entraid_application_id
 }
