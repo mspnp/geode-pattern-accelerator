@@ -34,7 +34,7 @@ output "api_principal_id" {
   sensitive = true
 }
 
-output "azuread_application_id" {
-  value     = azuread_application.azuread.application_id
+output "entraid_application_id" {
+  value     = azuread_application.entraid.application_id
   sensitive = true
 }

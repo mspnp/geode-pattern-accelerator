@@ -24,7 +24,7 @@ resource "azurerm_api_management_api_policy" "apipolicy" {
   xml_content = <<XML
 <policies>
   <inbound>
-      <authentication-managed-identity resource="${var.azure_ad_application_id}" />
+      <authentication-managed-identity resource="${var.entra_id_application_id}" />
       <check-header name="{{frontDoorHeader}}" failed-check-httpcode="401" failed-check-error-message="Not authorized" ignore-case="false">
         <value>{{frontDoorHeaderValue}}</value>
       </check-header>

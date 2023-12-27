@@ -68,9 +68,9 @@ resource "azurerm_api_management_api_operation" "getproducts" {
   }
 }
 
-# AAD
+# Microsoft Entra ID
 
-resource "azuread_application" "azuread" {
+resource "azuread_application" "entraid" {
   display_name               = local.service_name
   web {
     redirect_uris = ["https://${local.service_name}.azurewebsites.net/.auth/login/aad/callback"]
@@ -133,7 +133,7 @@ resource "azurerm_function_app" "fxnapp" {
   auth_settings {
     enabled = true
     active_directory {
-      client_id = azuread_application.azuread.application_id
+      client_id = azuread_application.entraid.application_id
     }
   }
 }
