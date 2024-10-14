@@ -4,38 +4,35 @@ locals {
 
 # API MANAGEMENT
 
-resource "null_resource" "apimservice" {
-  provisioner "local-exec" {
-    command = "az apim create --name ${local.service_name} -g ${var.resource_group_name} -l ${var.location} --sku-name Consumption --sku-capacity 0 --publisher-email publisher@example.com --publisher-name Publisher"
-  }
-}
+resource "azurerm_api_management" "apimservice" {
+  name                = local.service_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  publisher_name      = "Publisher"
+  publisher_email     = "publisher@example.com"
+  sku_name            = "Consumption_0"
 
-resource "null_resource" "apimservicemanagedidentity" {
-  provisioner "local-exec" {
-    command = "az apim update --name ${local.service_name} -g ${var.resource_group_name} --enable-managed-identity true"
+  identity {
+    type = "SystemAssigned"
   }
-
-  depends_on = [null_resource.apimservice]
 }
 
 resource "azurerm_api_management_api" "inventory" {
   name                  = "Inventory"
   resource_group_name   = var.resource_group_name
-  api_management_name   = local.service_name
+  api_management_name   = azurerm_api_management.apimservice.name
   revision              = "1"
   display_name          = "Inventory"
   path                  = "inventory"
   protocols             = ["https"]
-  service_url           = "https://${azurerm_function_app.fxnapp.default_hostname}"
+  service_url           = "https://${azurerm_windows_function_app.fxnapp.default_hostname}"
   subscription_required = false
-
-  depends_on = [null_resource.apimservice]
 }
 
 resource "azurerm_api_management_api_operation" "getproductbyid" {
   operation_id        = "GetProductById"
   api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
+  api_management_name = azurerm_api_management.apimservice.name
   resource_group_name = var.resource_group_name
   display_name        = "GetProductById"
   method              = "GET"
@@ -56,7 +53,7 @@ resource "azurerm_api_management_api_operation" "getproductbyid" {
 resource "azurerm_api_management_api_operation" "getproducts" {
   operation_id        = "GetProducts"
   api_name            = azurerm_api_management_api.inventory.name
-  api_management_name = local.service_name
+  api_management_name = azurerm_api_management.apimservice.name
   resource_group_name = var.resource_group_name
   display_name        = "GetProducts"
   method              = "GET"
@@ -71,7 +68,7 @@ resource "azurerm_api_management_api_operation" "getproducts" {
 # Microsoft Entra ID
 
 resource "azuread_application" "entraid" {
-  display_name               = local.service_name
+  display_name = local.service_name
   web {
     redirect_uris = ["https://${local.service_name}.azurewebsites.net/.auth/login/aad/callback"]
     implicit_grant {
@@ -95,36 +92,25 @@ resource "azurerm_storage_account" "fxnstorage" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  account_kind             = "StorageV2"
 }
 
-resource "azurerm_app_service_plan" "fxnase" {
+resource "azurerm_service_plan" "fxnase" {
   name                = local.service_name
   location            = var.location
   resource_group_name = var.resource_group_name
-  kind                = "functionapp"
-
-  sku {
-    tier = var.app_service_plan_tier
-    size = var.app_service_plan_size
-  }
+  os_type             = "Windows"
+  sku_name            = var.app_service_sku
 }
 
-resource "azurerm_function_app" "fxnapp" {
+resource "azurerm_windows_function_app" "fxnapp" {
   name                       = local.service_name
   location                   = var.location
   resource_group_name        = var.resource_group_name
-  app_service_plan_id        = azurerm_app_service_plan.fxnase.id
+  service_plan_id            = azurerm_service_plan.fxnase.id
   storage_account_name       = azurerm_storage_account.fxnstorage.name
   storage_account_access_key = azurerm_storage_account.fxnstorage.primary_access_key
-  version                    = "~3"
-  enable_builtin_logging     = false
 
-  lifecycle {
-    ignore_changes = [
-      app_settings
-    ]
-  }
+  site_config {}
 
   identity {
     type = "SystemAssigned"
@@ -133,7 +119,15 @@ resource "azurerm_function_app" "fxnapp" {
   auth_settings {
     enabled = true
     active_directory {
-      client_id = azuread_application.entraid.application_id
+      client_id = azuread_application.entraid.client_id
     }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings,
+      ftp_publish_basic_authentication_enabled,
+      webdeploy_publish_basic_authentication_enabled
+    ]
   }
 }

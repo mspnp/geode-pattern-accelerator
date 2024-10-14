@@ -13,14 +13,8 @@ variable "resource_group_name" {
   description = "The name of the Resource Group in which to deploy API resources."
 }
 
-variable "app_service_plan_tier" {
+variable "app_service_sku" {
   type        = string
-  description = "Specifies the Azure Functions App Service plan pricing tier."
-  default     = "Dynamic"
-}
-
-variable "app_service_plan_size" {
-  type        = string
-  description = "Specifies the Azure Functions App Service plan instance size tier."
+  description = "Specifies the Azure Functions App Service SKU."
   default     = "Y1"
 }
