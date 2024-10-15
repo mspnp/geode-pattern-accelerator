@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31129.286
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inventory-api", "inventory-api\inventory-api.csproj", "{5708913E-8EC3-41CA-AC9F-6391DE96AD84}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "inventory-api", "inventory-api\inventory-api.csproj", "{81E6C696-DB37-4F53-AD5D-DC76D5B4113F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{5708913E-8EC3-41CA-AC9F-6391DE96AD84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5708913E-8EC3-41CA-AC9F-6391DE96AD84}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5708913E-8EC3-41CA-AC9F-6391DE96AD84}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5708913E-8EC3-41CA-AC9F-6391DE96AD84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{81E6C696-DB37-4F53-AD5D-DC76D5B4113F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{81E6C696-DB37-4F53-AD5D-DC76D5B4113F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{81E6C696-DB37-4F53-AD5D-DC76D5B4113F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{81E6C696-DB37-4F53-AD5D-DC76D5B4113F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A7C8A2EF-9DF8-429D-B22F-11CAEAAF8AEC}
+		SolutionGuid = {AD6AAEA0-FF5E-4137-9FF5-9A251DC3D73D}
 	EndGlobalSection
 EndGlobal
