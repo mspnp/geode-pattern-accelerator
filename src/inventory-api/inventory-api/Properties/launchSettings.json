@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "inventory_api": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7288",
+      "launchBrowser": false
+    }
+  }
+}

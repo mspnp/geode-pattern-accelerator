@@ -9,7 +9,7 @@
 *.tfstate.*
 
 # .tfvars files
-*.tfvars
+terraform.tfvars
 
 .vs/
 obj

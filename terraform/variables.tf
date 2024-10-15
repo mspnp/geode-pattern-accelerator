@@ -57,14 +57,14 @@ variable "consistency_level" {
   }
 }
 
-variable "app_service_plan_tier" {
+variable "app_service_sku" {
   type        = string
-  description = "Specifies the Azure Function's App Service plan pricing tier."
-  default     = "Dynamic"
+  description = "Specifies the Azure Functions App Service SKU."
+  default     = "Y1"
 }
 
-variable "app_service_plan_size" {
+variable "front_door_sku" {
   type        = string
-  description = "Specifies the Azure Function's App Service plan instance size tier."
-  default     = "Y1"
+  description = "Specifies the Azure Front Door SKU."
+  default     = "Standard_AzureFrontDoor"
 }

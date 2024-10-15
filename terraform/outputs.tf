@@ -5,3 +5,7 @@ output "function_apps" {
 output "resource_group" {
   value = azurerm_resource_group.rg.name
 }
+
+output "frontdoor_hostname" {
+  value = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoint.host_name
+}
