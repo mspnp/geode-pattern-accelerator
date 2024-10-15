@@ -219,6 +219,7 @@ module "geode" {
   location            = local.allLocations[count.index]
   resource_group_name = azurerm_resource_group.rg.name
   app_service_sku     = var.app_service_sku
+  tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 
 # CIRCULAR DEPENDENCIES

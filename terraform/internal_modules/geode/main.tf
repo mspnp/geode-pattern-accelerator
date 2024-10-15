@@ -112,7 +112,7 @@ resource "azurerm_windows_function_app" "fxnapp" {
 
   site_config {
     application_stack {
-      dotnet_version = "v8.0"
+      dotnet_version              = "v8.0"
       use_dotnet_isolated_runtime = true
     }
   }
@@ -121,10 +121,13 @@ resource "azurerm_windows_function_app" "fxnapp" {
     type = "SystemAssigned"
   }
 
-  auth_settings {
-    enabled = true
-    active_directory {
-      client_id = azuread_application.entraid.client_id
+  auth_settings_v2 {
+    auth_enabled = true
+    login {}
+    active_directory_v2 {
+      client_id            = azuread_application.entraid.client_id
+      tenant_auth_endpoint = "https://login.microsoftonline.com/${var.tenant_id}/v2.0/"
+      allowed_identities   = [azurerm_api_management.apimservice.identity[0].principal_id]
     }
   }
 

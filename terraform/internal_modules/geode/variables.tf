@@ -18,3 +18,8 @@ variable "app_service_sku" {
   description = "Specifies the Azure Functions App Service SKU."
   default     = "Y1"
 }
+
+variable "tenant_id" {
+  type        = string
+  description = "The ID of the tenant to which the Azure Function's Entra authentication should be associated."
+}
