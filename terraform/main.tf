@@ -1,6 +1,6 @@
 provider "azurerm" {
   features {}
-  subscription_id = "5c01b9ab-7e48-4c36-b2c0-4eb091caac88"
+  subscription_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 }
 
 locals {
@@ -89,6 +89,14 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostic_setting" {
     category = "FrontdoorAccessLog"
   }
 
+  enabled_log {
+    category = "FrontdoorHealthProbeLog"
+  }
+
+  enabled_log {
+    category = "FrontdoorWebApplicationFirewallLog"
+  }
+
   metric {
     category = "AllMetrics"
   }
@@ -165,6 +173,38 @@ resource "azurerm_monitor_diagnostic_setting" "cosmos_diagnostic_setting" {
     category = "DataPlaneRequests"
   }
 
+  enabled_log {
+    category = "MongoRequests"
+  }
+
+  enabled_log {
+    category = "QueryRuntimeStatistics"
+  }
+
+  enabled_log {
+    category = "PartitionKeyStatistics"
+  }
+
+  enabled_log {
+    category = "PartitionKeyRUConsumption"
+  }
+
+  enabled_log {
+    category = "ControlPlaneRequests"
+  }
+
+  enabled_log {
+    category = "CassandraRequests"
+  }
+
+  enabled_log {
+    category = "GremlinRequests"
+  }
+
+  enabled_log {
+    category = "TableApiRequests"
+  }
+
   metric {
     category = "Requests"
   }
@@ -210,16 +250,35 @@ resource "azurerm_key_vault_secret" "cosmos_connection_string" {
   key_vault_id = azurerm_key_vault.key_vault.id
 }
 
+resource "azurerm_monitor_diagnostic_setting" "key_vault_diagnostic_setting" {
+  name                       = "keyvaultdiagnosticsetting"
+  target_resource_id         = azurerm_key_vault.key_vault.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics.id
+
+  enabled_log {
+    category = "AuditEvent"
+  }
+
+  enabled_log {
+    category = "AzurePolicyEvaluationDetails"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
+
 # GEODE API
 
 module "geode" {
-  count               = length(local.allLocations)
-  source              = "./internal_modules/geode"
-  base_name           = var.base_name
-  location            = local.allLocations[count.index]
-  resource_group_name = azurerm_resource_group.rg.name
-  app_service_sku     = var.app_service_sku
-  tenant_id           = data.azurerm_client_config.current.tenant_id
+  count                      = length(local.allLocations)
+  source                     = "./internal_modules/geode"
+  base_name                  = var.base_name
+  location                   = local.allLocations[count.index]
+  resource_group_name        = azurerm_resource_group.rg.name
+  app_service_sku            = var.app_service_sku
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics.id
 }
 
 # CIRCULAR DEPENDENCIES

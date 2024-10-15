@@ -23,3 +23,8 @@ variable "tenant_id" {
   type        = string
   description = "The ID of the tenant to which the Azure Function's Entra authentication should be associated."
 }
+
+variable "log_analytics_workspace_id" {
+  type        = string
+  description = "The Workspace ID of the Log Analytics workspace to which to send API Management logs."
+}

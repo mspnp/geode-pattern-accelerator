@@ -16,7 +16,7 @@ Each geode also receives a dedicated Microsoft Entra application that is used to
 
 The Terraform code also creates a Cosmos DB instance with a database and containers that are necessary for the Azure Functions. Each of the locations supplied via Terraform parameter are added as read regions. Optionally, the files can be applied with multi-region write enabled, deploying each of the same read regions with write capabilities. Other important properties on the Cosmos DB like maximum throughput on the database and containers, consistency level, etc. can also be easily supplied via Terraform parameter. Traffic is restricted so that the only entities able to run Cosmos DB queries are the set of Azure Functions in the various geodes.
 
-Monitoring resources are deployed to each of the resources in the larger API architecture, where possible. A single Log Analytics workspace is deployed to the resource group and is configured to capture logs from both the Front Door and Cosmos DB. Each Azure Function App is deployed with a dedicated Application Insights that is used to collect and query its log, performance, and error data. Application Insights reduces throughput when applied to an API Management instance and the Consumption tier does not currently support Log Analytics, so monitoring has been omitted for API Management.
+Monitoring resources are deployed to each of the resources in the larger API architecture, where possible. A single Log Analytics workspace is deployed to the resource group and is configured to capture logs from Front Door, Cosmos DB, Azure Functions, Key Vault, and Cosmos DB. Each Azure Function App is also deployed with a dedicated Application Insights that is used to collect and query its log, performance, and error data. Application Insights reduces throughput when applied to an API Management instance and the Consumption tier does not currently support Log Analytics, so monitoring has been omitted for API Management.
 
 The top level resources deployed to the resource group _once_ are as follows:
 
@@ -38,7 +38,7 @@ The top level resources deployed _to each geode_ are as follows:
 
 The [/src](./src) directory contains a basic API that serves as an example and place for developers to get started with the accelerator. The Inventory API is designed to work with a Cosmos DB instance with an Inventory database and Products container. The API contains two endpoints, GetProducts and GetProductById, which retrieve all Products and a specific Product, respectively, from the Products container. The endpoints themselves utilize Cosmos DB input bindings for Azure Functions and simply return the retrieved result, without any additional C# logic.
 
-Navigate to the [/terraform](./terraform) directory and initialize the project:
+Ensure your subscription_id is set within the `provider` block in [main.tf](./terraform/main.tf), then navigate to the [/terraform](./terraform) directory and initialize the project:
 
 ```dotnetcli
 terraform init
@@ -185,7 +185,11 @@ locals {
 
 Update the array with the appropriate settings from your API's `local.settings.json` file.
 
-At this point, the project has been updated to fit the new API and can now be used to globally distribute its deployment. Navigate to the [/terraform](./terraform) directory and initialize the project:
+At this point, the project has been updated to fit the new API and can now be used to globally distribute its deployment. Ensure your subscription_id is set within the `provider` block in [main.tf](./terraform/main.tf), then navigate to the [/terraform](./terraform) directory and initialize the project:
+
+```dotnetcli
+terraform init
+```
 
 Rename the [`sample.terraform.tfvars`](./terraform/sample.terraform.tfvars) to `terraform.tfvars` and update the parameter values accordingly.
 
@@ -226,7 +230,7 @@ The only accessible ingress point for the API is the Azure Front Door. The accel
 
 ## Monitoring
 
-The [/monitoring](./monitoring) directory contains Kusto queries that can be run against the different services within the API architecture. As previously mentioned, the Front Door and Cosmos DB are configured to stream logs to Log Analytics, while the Azure Functions are deployed with a corresponding Application Insights. The queries each contain a `cluster()` function that connects to these monitoring resources and must be updated with the `baseName` value provided earlier as a Terraform parameter.
+The [/monitoring](./monitoring) directory contains Kusto queries that can be run against the different services within the API architecture. As previously mentioned, the global and geode-specific resources are configured to stream logs to Log Analytics and the Azure Functions are additionally deployed with a corresponding Application Insights instance. The queries each contain a `cluster()` function that connects to these monitoring resources and must be updated with the `baseName` value provided earlier as a Terraform parameter.
 
 The following tables list the provided queries with a brief description:
 

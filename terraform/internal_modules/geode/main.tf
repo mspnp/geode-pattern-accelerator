@@ -139,3 +139,17 @@ resource "azurerm_windows_function_app" "fxn_app" {
     ]
   }
 }
+
+resource "azurerm_monitor_diagnostic_setting" "fxn_app_diagnostic_setting" {
+  name                       = "fxnappdiagnosticsetting"
+  target_resource_id         = azurerm_windows_function_app.fxn_app.id
+  log_analytics_workspace_id = var.log_analytics_workspace_id
+
+  enabled_log {
+    category = "FunctionAppLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+  }
+}
