@@ -7,5 +7,5 @@ output "resource_group" {
 }
 
 output "frontdoor_hostname" {
-  value = azurerm_cdn_frontdoor_endpoint.frontdoorendpoint.host_name
+  value = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoint.host_name
 }

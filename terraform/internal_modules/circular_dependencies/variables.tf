@@ -28,7 +28,7 @@ variable "front_door_header_id" {
   description = "The unique Header ID of the Front Door."
 }
 
-variable "entra_id_application_id" {
+variable "entra_application_client_id" {
   type        = string
-  description = "The ID of the Microsoft Entra ID Application."
+  description = "The Client ID of the Microsoft Entra ID Application."
 }

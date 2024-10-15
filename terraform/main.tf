@@ -10,7 +10,7 @@ locals {
     split(",", geode.api_app_possible_ip_addresses)
   ])
   front_door_origin_ids = [
-    for origin in azurerm_cdn_frontdoor_origin.frontdoororigin :
+    for origin in azurerm_cdn_frontdoor_origin.frontdoor_origin :
     origin.id
   ]
 }
@@ -30,12 +30,12 @@ resource "azurerm_cdn_frontdoor_profile" "frontdoor" {
   sku_name            = var.front_door_sku
 }
 
-resource "azurerm_cdn_frontdoor_endpoint" "frontdoorendpoint" {
+resource "azurerm_cdn_frontdoor_endpoint" "frontdoor_endpoint" {
   name                     = "${var.base_name}frontdoorendpoint"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor.id
 }
 
-resource "azurerm_cdn_frontdoor_origin_group" "frontdoororigingroup" {
+resource "azurerm_cdn_frontdoor_origin_group" "frontdoor_origin_group" {
   name                     = "${var.base_name}frontdoororigingroup"
   cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.frontdoor.id
   session_affinity_enabled = true
@@ -53,10 +53,10 @@ resource "azurerm_cdn_frontdoor_origin_group" "frontdoororigingroup" {
   }
 }
 
-resource "azurerm_cdn_frontdoor_origin" "frontdoororigin" {
+resource "azurerm_cdn_frontdoor_origin" "frontdoor_origin" {
   count                          = length(module.geode)
   name                           = "${var.base_name}frontdoororigin${count.index}"
-  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.frontdoororigingroup.id
+  cdn_frontdoor_origin_group_id  = azurerm_cdn_frontdoor_origin_group.frontdoor_origin_group.id
   enabled                        = true
   host_name                      = split("https://", module.geode[count.index].api_management_gateway_url)[1]
   http_port                      = 80
@@ -67,10 +67,10 @@ resource "azurerm_cdn_frontdoor_origin" "frontdoororigin" {
   certificate_name_check_enabled = true
 }
 
-resource "azurerm_cdn_frontdoor_route" "frontdoorroute" {
+resource "azurerm_cdn_frontdoor_route" "frontdoor_route" {
   name                          = "${var.base_name}frontdoorroute"
-  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.frontdoorendpoint.id
-  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.frontdoororigingroup.id
+  cdn_frontdoor_endpoint_id     = azurerm_cdn_frontdoor_endpoint.frontdoor_endpoint.id
+  cdn_frontdoor_origin_group_id = azurerm_cdn_frontdoor_origin_group.frontdoor_origin_group.id
   cdn_frontdoor_origin_ids      = local.front_door_origin_ids
 
   supported_protocols    = ["Http", "Https"]
@@ -80,10 +80,10 @@ resource "azurerm_cdn_frontdoor_route" "frontdoorroute" {
   https_redirect_enabled = true
 }
 
-resource "azurerm_monitor_diagnostic_setting" "frontdoordiagnosticsetting" {
+resource "azurerm_monitor_diagnostic_setting" "frontdoor_diagnostic_setting" {
   name                       = "frontdoordiagnosticsetting"
   target_resource_id         = azurerm_cdn_frontdoor_profile.frontdoor.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.loganalytics.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics.id
 
   enabled_log {
     category = "FrontdoorAccessLog"
@@ -96,7 +96,7 @@ resource "azurerm_monitor_diagnostic_setting" "frontdoordiagnosticsetting" {
 
 # LOG ANALYTICS
 
-resource "azurerm_log_analytics_workspace" "loganalytics" {
+resource "azurerm_log_analytics_workspace" "log_analytics" {
   name                = "${var.base_name}loganalytics"
   location            = var.primary_location
   resource_group_name = azurerm_resource_group.rg.name
@@ -106,7 +106,7 @@ resource "azurerm_log_analytics_workspace" "loganalytics" {
 
 # COSMOS DB
 
-resource "azurerm_cosmosdb_account" "cosmosaccount" {
+resource "azurerm_cosmosdb_account" "cosmos_account" {
   name                             = "${var.base_name}cosmos"
   location                         = var.primary_location
   resource_group_name              = azurerm_resource_group.rg.name
@@ -139,7 +139,7 @@ resource "azurerm_cosmosdb_account" "cosmosaccount" {
 resource "azurerm_cosmosdb_sql_database" "inventory" {
   name                = "Inventory"
   resource_group_name = azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.cosmosaccount.name
+  account_name        = azurerm_cosmosdb_account.cosmos_account.name
   autoscale_settings {
     max_throughput = var.database_max_throughput
   }
@@ -148,7 +148,7 @@ resource "azurerm_cosmosdb_sql_database" "inventory" {
 resource "azurerm_cosmosdb_sql_container" "products" {
   name                = "Products"
   resource_group_name = azurerm_resource_group.rg.name
-  account_name        = azurerm_cosmosdb_account.cosmosaccount.name
+  account_name        = azurerm_cosmosdb_account.cosmos_account.name
   database_name       = azurerm_cosmosdb_sql_database.inventory.name
   partition_key_paths = ["/id"]
   autoscale_settings {
@@ -156,10 +156,10 @@ resource "azurerm_cosmosdb_sql_container" "products" {
   }
 }
 
-resource "azurerm_monitor_diagnostic_setting" "cosmosdiagnosticsetting" {
+resource "azurerm_monitor_diagnostic_setting" "cosmos_diagnostic_setting" {
   name                       = "cosmosdiagnosticsetting"
-  target_resource_id         = azurerm_cosmosdb_account.cosmosaccount.id
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.loganalytics.id
+  target_resource_id         = azurerm_cosmosdb_account.cosmos_account.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.log_analytics.id
 
   enabled_log {
     category = "DataPlaneRequests"
@@ -172,7 +172,7 @@ resource "azurerm_monitor_diagnostic_setting" "cosmosdiagnosticsetting" {
 
 # KEY VAULT
 
-resource "azurerm_key_vault" "keyvault" {
+resource "azurerm_key_vault" "key_vault" {
   name                = "${var.base_name}keyvault"
   location            = var.primary_location
   resource_group_name = azurerm_resource_group.rg.name
@@ -204,10 +204,10 @@ resource "azurerm_key_vault" "keyvault" {
   }
 }
 
-resource "azurerm_key_vault_secret" "cosmosconnectionstring" {
+resource "azurerm_key_vault_secret" "cosmos_connection_string" {
   name         = "cosmosConnectionString"
-  value        = "AccountEndpoint=${azurerm_cosmosdb_account.cosmosaccount.endpoint};AccountKey=${azurerm_cosmosdb_account.cosmosaccount.primary_key};"
-  key_vault_id = azurerm_key_vault.keyvault.id
+  value        = "AccountEndpoint=${azurerm_cosmosdb_account.cosmos_account.endpoint};AccountKey=${azurerm_cosmosdb_account.cosmos_account.primary_key};"
+  key_vault_id = azurerm_key_vault.key_vault.id
 }
 
 # GEODE API
@@ -231,7 +231,7 @@ module "circular_dependencies" {
   api_management_name                          = module.geode[count.index].api_management_name
   function_app_name                            = module.geode[count.index].api_app_name
   instrumentation_key                          = module.geode[count.index].app_insights_instrumentation_key
-  cosmos_connection_string_key_vault_secret_id = azurerm_key_vault_secret.cosmosconnectionstring.id
+  cosmos_connection_string_key_vault_secret_id = azurerm_key_vault_secret.cosmos_connection_string.id
   front_door_header_id                         = azurerm_cdn_frontdoor_profile.frontdoor.resource_guid
-  entra_id_application_id                      = module.geode[count.index].entraid_application_id
+  entra_application_client_id                  = module.geode[count.index].entra_application_client_id
 }
