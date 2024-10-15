@@ -28,6 +28,7 @@ resource "azurerm_api_management_api_policy" "apipolicy" {
       <check-header name="{{frontDoorHeader}}" failed-check-httpcode="401" failed-check-error-message="Not authorized" ignore-case="false">
         <value>{{frontDoorHeaderValue}}</value>
       </check-header>
+      <base />
   </inbound>
 </policies>
 XML
@@ -46,12 +47,12 @@ locals {
     },
     {
       name        = "FUNCTIONS_EXTENSION_VERSION"
-      value       = "~3"
+      value       = "~4"
       slotSetting = false
     },
     {
       name        = "FUNCTIONS_WORKER_RUNTIME"
-      value       = "dotnet"
+      value       = "dotnet-isolated"
       slotSetting = false
     },
     {

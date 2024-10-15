@@ -110,7 +110,12 @@ resource "azurerm_windows_function_app" "fxnapp" {
   storage_account_name       = azurerm_storage_account.fxnstorage.name
   storage_account_access_key = azurerm_storage_account.fxnstorage.primary_access_key
 
-  site_config {}
+  site_config {
+    application_stack {
+      dotnet_version = "v8.0"
+      use_dotnet_isolated_runtime = true
+    }
+  }
 
   identity {
     type = "SystemAssigned"
