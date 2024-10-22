@@ -13,14 +13,18 @@ variable "resource_group_name" {
   description = "The name of the Resource Group in which to deploy API resources."
 }
 
-variable "app_service_plan_tier" {
+variable "app_service_sku" {
   type        = string
-  description = "Specifies the Azure Functions App Service plan pricing tier."
-  default     = "Dynamic"
+  description = "Specifies the Azure Functions App Service SKU."
+  default     = "Y1"
 }
 
-variable "app_service_plan_size" {
+variable "tenant_id" {
   type        = string
-  description = "Specifies the Azure Functions App Service plan instance size tier."
-  default     = "Y1"
+  description = "The ID of the tenant to which the Azure Function's Entra authentication should be associated."
+}
+
+variable "log_analytics_workspace_id" {
+  type        = string
+  description = "The Workspace ID of the Log Analytics workspace to which to send API Management logs."
 }

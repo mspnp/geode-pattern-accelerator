@@ -1,29 +1,29 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Inventory.Models;
-using System.Collections.Generic;
-using System;
+using inventory_api.Models;
 
-namespace Inventory.Functions
+namespace inventory_api.Functions
 {
-    public static class GetProducts
+    public class GetProducts
     {
-        [FunctionName("GetProducts")]
-        public static IActionResult Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "products")] HttpRequest req,
-            [CosmosDB(
-                databaseName: "Inventory",
-                collectionName: "Products",
-                ConnectionStringSetting = "CosmosDBConnection",
-                SqlQuery = "SELECT * FROM c")]
-                IEnumerable<ProductDocument> retrievedProducts,
-            ILogger log)
-        {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+        private readonly ILogger<GetProducts> _logger;
 
+        public GetProducts(ILogger<GetProducts> logger)
+        {
+            _logger = logger;
+        }
+
+        [Function("GetProducts")]
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "products")] HttpRequest req,
+            [CosmosDBInput(
+                databaseName: "Inventory",
+                containerName: "Products",
+                Connection  = "CosmosDBConnection",
+                SqlQuery = "SELECT * FROM c")] IEnumerable<ProductDocument> retrievedProducts)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
             return new OkObjectResult(retrievedProducts);
         }
     }

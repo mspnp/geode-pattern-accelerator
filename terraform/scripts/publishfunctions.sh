@@ -1,8 +1,7 @@
 #! /bin/bash
 
-language=$1
-terraformDirectory=$2
-functionAppDirectory=$3
+terraformDirectory=$1
+functionAppDirectory=$2
 currentDirectory=$(pwd)
 
 echo "Changing directory to $terraformDirectory"
@@ -42,12 +41,12 @@ for app in $functionApps; do
   az functionapp start -g "$resourceGroup" -n "$app" >/dev/null
 
   echo "Publishing to $app"
-  func azure functionapp publish $app --$language
+  func azure functionapp publish $app --dotnet-isolated
   for ((i = 0; $? != 0 && $i < 10; i++)); do
     # Echoes in Red
     echo -e "\e[31m[$i] Failed ($?). Waiting 1 minute and trying again...\e[0m"
     sleep 1m
-    func azure functionapp publish $app --$language
+    func azure functionapp publish $app --dotnet-isolated
   done
 
   if [[ $? != 0 ]]; then
