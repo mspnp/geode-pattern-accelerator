@@ -1,4 +1,4 @@
-using Inventory.Models;
+using inventory_api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
